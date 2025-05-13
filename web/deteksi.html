@@ -1,0 +1,670 @@
+
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>AcneSense Responsive Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    <style>
+      body,
+      html {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        padding: 0;
+        font-family: "Manrope", sans-serif;
+        background-color: #d6ebd5;
+      }
+      .header-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+      }
+      .header-desktop-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 600;
+        font-size: 24px;
+      }
+      .title-font {
+        font-weight: 800;
+        font-size: 1.75rem; /* 28px approx */
+        user-select: none;
+      }
+      .accent-green {
+        color: #40c057;
+      }
+      .sub-title-font {
+        font-family: "Maven Pro", sans-serif;
+        font-weight: 500;
+        font-size: 0.875rem; /* 14px */
+        user-select: none;
+      }
+      .icon-style {
+        font-size: 1.25rem;
+      }
+      /* Rounded corner style for each button (similar radius on top-left) */
+      .btn-rounded {
+        border-top-left-radius: 1rem;
+      }
+      .btn-detect {
+        background-color: #2c5e5f;
+        color: white;
+        font-weight: 600;
+      }
+      .btn-detect:hover {
+        background-color: #244b4b;
+      }
+      .btn-history {
+        background-color: #ff8a65;
+        color: white;
+        font-weight: 600;
+      }
+      .btn-history:hover {
+        background-color: #e3734f;
+      }
+      .btn-aichat {
+        background-color: #484da1;
+        color: white;
+        font-weight: 600;
+      }
+      .btn-aichat:hover {
+        background-color: #3d43a0;
+      }
+      .btn-icon-text {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+      }
+      .btn-icon-text i {
+        font-size: 1.25rem;
+      }
+      .btn-icon-text span {
+        flex: 1;
+        margin-left: 1.25rem;
+        font-size: 1.125rem;
+        text-align: left;
+      }
+      .btn-icon-text .fa-arrow-right {
+        font-size: 1.25rem;
+      }
+      /* Image container adjustment */
+      .image-box {
+        position: relative;
+        background-color: #a7a7a7; /* placeholder background */
+        border-radius: 0.75rem;
+        overflow: hidden;
+      }
+      /* For mobile image */
+      .mobile-image {
+        width: 100%;
+        max-width: 400px;
+        border-radius: 1rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.25);
+      }
+      /* Overlay Box on mobile image - highlight detection */
+      .mobile-highlight {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px;
+        height: 100px;
+        background: rgba(255 255 255 / 0.6);
+        border-radius: 0.5rem;
+        pointer-events: none;
+      }
+      .camera-control {
+        display: flex;
+        justify-content: center;
+        padding-top: 1rem;
+      }
+      .camera-button {
+        background: #2c5e5f;
+        border-radius: 9999px;
+        width: 56px;
+        height: 56px;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 1rem;
+        transition: background-color 0.3s ease;
+      }
+      .camera-button:hover {
+        background: #244b4b;
+      }
+      .image-upload-btn {
+        background: white;
+        border-radius: 9999px;
+        width: 56px;
+        height: 56px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2c5e5f;
+        font-size: 24px;
+        box-shadow: 0 0 5px rgba(44,94,95,0.5);
+        transition: background-color 0.3s ease;
+      }
+      .image-upload-btn:hover {
+        background: #e0eaea;
+      }
+
+      /* Desktop layout specifics */
+      .desktop-container {
+        max-width: 1200px;
+        margin: auto;
+        display: flex;
+        background: #d6ebd5;
+        border-radius: 1rem;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .left-panel {
+        background: white;
+        width: 40%;
+        padding: 2.5rem;
+        border-top-left-radius: 1rem;
+        border-bottom-left-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        color: black;
+      }
+      .right-panel {
+        background: #9ca299;
+        width: 60%;
+        padding: 2.5rem;
+        border-top-right-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .desktop-header {
+        background: #6a9e61;
+        padding: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.5rem;
+        border-top-right-radius: 1rem;
+      }
+      .desktop-avatar {
+        width: 3rem;
+        height: 3rem;
+        background: white;
+        border-radius: 9999px;
+        border: 1px solid #ccc;
+        overflow: hidden;
+      }
+      .desktop-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .desktop-buttons > button {
+        width: 100%;
+        color: white;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 1.75rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-size: 1.125rem;
+      }
+      .btn-detect-desktop {
+        background-color: #2c5e5f;
+      }
+      .btn-detect-desktop:hover {
+        background-color: #244b4b;
+      }
+      .btn-history-desktop {
+        background-color: #ff8a65;
+      }
+      .btn-history-desktop:hover {
+        background-color: #e3734f;
+      }
+      .btn-aichat-desktop {
+        background-color: #484da1;
+      }
+      .btn-aichat-desktop:hover {
+        background-color: #3d43a0;
+      }
+      .right-image-container {
+        flex: 1;
+        background: #b5b4a3;
+        border-radius: 1rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .right-image {
+        max-width: 80%;
+        border-radius: 1rem;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      }
+
+      .right-highlight {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 130px;
+        background: rgba(255 255 255 / 0.4);
+        border-radius: 1rem;
+        pointer-events: none;
+      }
+
+      .camera-controls-desktop {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+      }
+
+      /* Focus Circle Style */
+      #focusCircle {
+        position: fixed;
+        z-index: 50;
+        width: 80px;
+        height: 80px;
+        border: 3px solid white;
+        border-radius: 50%;
+        pointer-events: none;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 0 15px rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.2);
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+ 
+    <div class="block md:hidden h-screen bg-black relative flex flex-col">
+        <main class="flex flex-1 flex-col justify-end bg-black relative overflow-hidden">
+          <!-- Fullscreen Camera Preview -->
+          <video id="cameraPreview" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+      
+          <!-- Bottom Controls -->
+          <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[320px] bg-white rounded-3xl flex items-center justify-around px-6 py-3 shadow-lg">
+            <button aria-label="Upload Foto" class="text-[#346D6B] text-2xl" title="Upload Foto" onclick="document.getElementById('mobile-upload-input').click()">
+              <i class="fa-solid fa-image"></i>
+              <input type="file" accept="image/*" style="display:none;" id="mobile-upload-input" onchange="handleImageUpload(event)" />
+            </button>
+            <button aria-label="Ambil Foto dan Deteksi" id="captureButton" class="bg-[#346D6B] w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl shadow">
+              <i class="fa-solid fa-circle"></i>
+            </button>
+            <button aria-label="Toggle Flash" id="flashToggle" class="text-[#346D6B] text-2xl" title="Toggle Flash">
+              <i class="fa-solid fa-bolt"></i>
+            </button>
+          </div>
+        </main>
+      </div>
+
+      <!-- Desktop/Tablet version -->
+<div class="hidden md:flex w-full h-screen mx-auto bg-[#D6EBD5] rounded-2xl overflow-hidden " >
+    <div class="flex flex-1 items-center justify-center" style="margin: 0 20px;">
+      <div
+        class="bg-white w-full max-w-7xl rounded-2xl p-5 flex"
+        style="min-height: 600px" 
+      >
+        <!-- Left Panel -->
+        <div
+          class="w-1/2 flex flex-col space-y-6 rounded-l-2xl bg-[#FFFFFF] p-10 text-black"
+        >
+          <header class="mb-8 pb-6 border-b border-gray-300">
+            <h1 class="title-font mb-2 select-none text-3xl">
+              Acne<span class="accent-green">Sense</span>
+            </h1>
+            <p class="sub-title-font select-none text-lg">For Your Acne Solution</p>
+          </header>
+  
+          <button
+            aria-label="Foto dan deteksi sekarang"
+            class="flex items-center justify-between bg-[#2C5E5F] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#244B4B]"
+          >
+            <i class="fa-solid fa-qrcode icon-style"></i>
+            <span class="flex-1 text-left ml-5 text-lg"
+              >Foto dan deteksi <br> sekarang!</span
+            >
+            <i class="fa-solid fa-arrow-right icon-style"></i>
+          </button>
+  
+          <button
+            aria-label="Riwayat deteksi"
+            class="flex items-center justify-between bg-[#FF8A65] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#e3734f]"
+          >
+            <i class="fa-regular fa-file-lines icon-style"></i>
+            <span class="flex-1 text-left ml-5 text-lg">Riwayat deteksi</span>
+            <i class="fa-solid fa-arrow-right icon-style"></i>
+          </button>
+  
+          <button
+            aria-label="Mulai chat dengan AI"
+            class="flex items-center justify-between bg-[#484DA1] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#3d43a0]"
+          >
+            <i class="fa-solid fa-robot icon-style"></i>
+            <span class="flex-1 text-left ml-5 text-lg">Mulai chat dengan <br> AI</span>
+            <i class="fa-solid fa-arrow-right icon-style"></i>
+          </button>
+        </div>
+  
+<!-- Right Panel -->
+<div class="w-2/3 flex flex-col rounded-r-2xl overflow-hidden">
+    <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none text-white">
+      <h2 class="header-desktop-font">Deteksi</h2>
+      <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+        <img src="image.png" alt="avatar" />
+      </div>
+    </header>
+    <div class="flex-1 flex flex-col justify-center items-center p-10 bg-white relative">
+      <!-- Fullscreen Camera Preview -->
+      <div class="w-full h-[500px] bg-black rounded-2xl relative overflow-hidden">
+        <video 
+          id="desktopCameraPreview" 
+          autoplay 
+          playsinline 
+          muted 
+          class="absolute inset-0 w-full h-full object-cover"
+        ></video>
+      </div>
+  
+      <div class="mt-6 w-full flex justify-center space-x-4">
+        <button 
+          id="desktopUploadButton"
+          class="w-40 py-3 bg-[#FF8A65] text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-[#e3734f] transition"
+          onclick="document.getElementById('desktop-upload-input').click()"
+        >
+          <i class="fa-solid fa-image"></i>
+          <span>Upload Foto</span>
+          <input 
+            type="file" 
+            accept="image/*" 
+            style="display:none;" 
+            id="desktop-upload-input" 
+            onchange="handleDesktopImageUpload(event)"
+          />
+        </button>
+        <button 
+          id="desktopCaptureButton"
+          class="w-40 py-3 bg-[#2C5E5F] text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-[#244B4B] transition"
+        >
+          <i class="fa-solid fa-circle"></i>
+          <span>Ambil Foto</span>
+        </button>
+      </div>
+    </div>
+  </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Focus Circle -->
+  <div id="focusCircle"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+  /* ======= Desktop Camera Setup ======= */
+  const desktopVideo = document.getElementById('desktopCameraPreview');
+  const desktopCaptureButton = document.getElementById('desktopCaptureButton');
+  const desktopUploadInput = document.getElementById('desktop-upload-input');
+
+  let desktopStream = null;
+
+  async function startDesktopCamera() {
+    if (desktopStream) {
+      desktopStream.getTracks().forEach(track => track.stop());
+    }
+    try {
+      const constraints = {
+        video: {
+          facingMode: 'environment', // atau 'user' jika depan
+          width: { ideal: 1920, max: 3840 },
+          height: { ideal: 1080, max: 2160 }
+        }
+      };
+      desktopStream = await navigator.mediaDevices.getUserMedia(constraints);
+      desktopVideo.srcObject = desktopStream;
+      await new Promise(resolve => {
+        desktopVideo.onloadedmetadata = () => {
+          desktopVideo.play();
+          resolve();
+        };
+      });
+    } catch (error) {
+      console.error('Error mengakses kamera:', error);
+      alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.');
+    }
+  }
+
+  function captureDesktopPhoto() {
+    if (!desktopStream) {
+      alert('Kamera belum siap');
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = desktopVideo.videoWidth;
+    canvas.height = desktopVideo.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(desktopVideo, 0, 0, canvas.width, canvas.height);
+    const photoData = canvas.toDataURL('image/jpeg');
+    console.log('Foto berhasil ditangkap', photoData);
+    alert('Foto berhasil diambil!');
+  }
+
+  function handleDesktopImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      console.log('Foto yang diunggah:', e.target.result);
+      alert('Foto berhasil diunggah!');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  desktopCaptureButton.addEventListener('click', captureDesktopPhoto);
+  desktopUploadInput.addEventListener('change', handleDesktopImageUpload);
+
+  startDesktopCamera();
+
+  /* ======= Mobile Camera Setup ======= */
+  const mobileVideo = document.getElementById('cameraPreview');
+  const mobileCaptureButton = document.getElementById('captureButton');
+  const flashToggle = document.getElementById('flashToggle');
+  const mobileUploadInput = document.getElementById('mobile-upload-input');
+
+  let mobileStream = null;
+  let torchActive = false;
+
+  async function startMobileCamera() {
+    if (mobileStream) {
+      mobileStream.getTracks().forEach(track => track.stop());
+    }
+
+    try {
+      const constraints = {
+        video: {
+          facingMode: 'environment', // Hanya kamera belakang
+          width: { ideal: 1920, max: 3840 },
+          height: { ideal: 1080, max: 2160 }
+        }
+      };
+
+      mobileStream = await navigator.mediaDevices.getUserMedia(constraints);
+      mobileVideo.srcObject = mobileStream;
+      await new Promise((resolve) => {
+        mobileVideo.onloadedmetadata = () => {
+          mobileVideo.play();
+          resolve();
+        };
+      });
+
+      checkTorchCapability();
+
+    } catch (error) {
+      console.error('Error mengakses kamera:', error);
+      alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.');
+    }
+  }
+
+  function checkTorchCapability() {
+    if (!mobileStream) return;
+
+    const track = mobileStream.getVideoTracks()[0];
+    
+    const capabilities = track.getCapabilities();
+    const supportsTorch = capabilities && 'torch' in capabilities;
+
+    try {
+      track.applyConstraints({
+        advanced: [{ torch: true }]
+      }).then(() => {
+        flashToggle.classList.remove('hidden');
+        flashToggle.disabled = false;
+      }).catch(() => {
+        flashToggle.classList.add('hidden');
+        flashToggle.disabled = true;
+      });
+    } catch (error) {
+      flashToggle.classList.add('hidden');
+      flashToggle.disabled = true;
+    }
+  }
+
+  async function toggleFlash() {
+    if (!mobileStream) return;
+
+    const track = mobileStream.getVideoTracks()[0];
+    
+    try {
+      torchActive = !torchActive;
+      
+      await track.applyConstraints({
+        advanced: [{ torch: torchActive }]
+      });
+      
+      flashToggle.classList.toggle('text-yellow-500', torchActive);
+    } catch (error) {
+      console.warn('Gagal mengatur flash:', error);
+      torchActive = !torchActive;
+      alert('Tidak dapat mengaktifkan flash di perangkat ini.');
+    }
+  }
+
+  function captureMobilePhoto() {
+    if (!mobileStream) {
+      alert('Kamera belum siap');
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = mobileVideo.videoWidth;
+    canvas.height = mobileVideo.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(mobileVideo, 0, 0, canvas.width, canvas.height);
+    const photoData = canvas.toDataURL('image/jpeg');
+    console.log('Foto berhasil ditangkap', photoData);
+    alert('Foto berhasil diambil!');
+  }
+
+  function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      console.log('Foto yang diunggah:', e.target.result);
+      alert('Foto berhasil diunggah!');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  mobileCaptureButton.addEventListener('click', captureMobilePhoto);
+  flashToggle.addEventListener('click', toggleFlash);
+  mobileUploadInput.addEventListener('change', handleImageUpload);
+
+  startMobileCamera();
+
+  // Focus Circle Implementation
+  const focusCircleElement = document.getElementById('focusCircle');
+
+  mobileVideo.addEventListener('click', async (event) => {
+    // Pastikan stream sudah ada
+    if (!mobileStream) return;
+
+    // Dapatkan koordinat klik relatif terhadap video
+    const rect = mobileVideo.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Tampilkan dan posisikan lingkaran fokus
+    focusCircleElement.style.left = `${x}px`;
+    focusCircleElement.style.top = `${y}px`;
+    focusCircleElement.style.transform = 'translate(-50%, -50%)';
+    focusCircleElement.style.opacity = '1';
+
+    try {
+      // Dapatkan track video
+      const track = mobileStream.getVideoTracks()[0];
+      
+      // Coba fokus manual (bergantung pada dukungan perangkat)
+      await track.applyConstraints({
+        advanced: [{
+          focusMode: 'manual',
+          focusDistance: 0
+        }]
+      });
+
+      // Sembunyikan lingkaran fokus setelah beberapa saat
+      setTimeout(() => {
+        focusCircleElement.style.opacity = '0';
+      }, 1000);
+
+    } catch (error) {
+      console.warn('Fokus manual tidak didukung:', error);
+      
+      // Sembunyikan lingkaran fokus
+      setTimeout(() => {
+        focusCircleElement.style.opacity = '0';
+      }, 1000);
+    }
+  });
+});
+</script>
+  
+  </body>
+</html>
