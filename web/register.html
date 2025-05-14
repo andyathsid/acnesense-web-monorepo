@@ -1,1 +1,193 @@
-aku adalah
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>AcneSense - Register Account</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Maven+Pro:wght@400..900&display=swap" rel="stylesheet">
+  <style>
+    body, html {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      background-color: #D6EBD5;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .input-label {
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    .input-style {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    .title-font {
+      font-family: 'manrope', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+    }
+    .sub-title-font {
+      font-family: 'maven pro', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .register-heading {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .welcome-subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      color: #666;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    /* Tambahan untuk scrolling mobile */
+    @media (max-width: 767px) {
+      .mobile-scroll-container {
+        max-height: 65%;
+        overflow-y: auto;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 2rem;
+        background-color: #E5F6E5;
+        border-top-left-radius: 1.5rem;
+        border-top-right-radius: 1.5rem;
+        box-sizing: border-box;
+      }
+      
+      .mobile-scroll-content {
+        padding-bottom: 2rem; /* Tambahan ruang di bawah */
+      }
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0">
+  
+  <!-- Mobile version (small screens) -->
+  <div class="block md:hidden w-full h-screen relative rounded-none overflow-hidden bg-gray-800 shadow-lg">
+    <div class="relative w-full">
+      <img 
+        src="image.png" 
+        alt="Face with acne" 
+        class="w-full h-full object-cover" 
+        style="object-position: center top;" 
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-black opacity-30"></div>
+    </div>
+    <div class="mobile-scroll-container">
+      <div class="mobile-scroll-content">
+        <div class="text-center mb-6">
+          <h1 class="text-black title-font leading-8 select-none">
+            Acne<span class="text-[#40c057]">Sense</span>
+          </h1>
+          <p class="sub-title-font leading-8 select-none">For Your Acne Solution</p>
+        </div>
+        
+        <h1 class="register-heading">Register Account</h1>
+        <h2 class="welcome-subtitle">Selamat datang di Acne Sense</h2>
+        
+        <form class="space-y-4">
+          <div>
+            <p class="input-label">Nama Lengkap</p>
+            <input type="text" placeholder="Masukkan Nama Lengkap" class="input-style" required>
+          </div>
+          <div>
+            <p class="input-label">Email</p>
+            <input type="email" placeholder="Masukkan Email" class="input-style" required>
+          </div>
+          <div>
+            <p class="input-label">Tanggal Lahir</p>
+            <input type="date" placeholder="Masukkan Tanggal Lahir" class="input-style" required>
+          </div>
+          <div>
+            <p class="input-label">Password</p>
+            <input type="password" placeholder="Masukkan Password" class="input-style" required>
+          </div>
+          <div>
+            <p class="input-label">Konfirmasi Password</p>
+            <input type="password" placeholder="Masukkan Konfirmasi Password" class="input-style" required>
+          </div>
+          
+          <button type="submit" class="w-full bg-[#546254] text-white py-2 rounded-md transition-colors hover:bg-[#43543d]">
+            Registrasi
+          </button>
+        </form>
+        
+        <p class="text-center mt-4 sub-title-font">Sudah mempunyai akun? <a href="#" class="text-[#40c057] font-semibold">Login disini</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop / Tablet version (medium screens and up) -->
+  <div class="hidden md:flex max-w-4xl bg-[#D6EBD5] rounded-2xl shadow-lg overflow-hidden w-full max-w-[768px]">
+    <!-- Left panel -->
+    <div class="w-1/2 p-10 flex flex-col justify-center items-center bg-white rounded-l-2xl">
+      <h1 class="title-font mb-2 leading-6 select-none">
+        Acne<span class="text-[#40c057]">Sense</span>
+      </h1>
+      <p class="sub-title-font leading-6 mb-8 select-none">For Your Acne Solution</p>
+      
+      <h1 class="register-heading">Register Account</h1>
+      <h2 class="welcome-subtitle">Selamat datang di Acne Sense</h2>
+      
+      <form class="w-full">
+        <div>
+          <p class="input-label">Nama Lengkap</p>
+          <input type="text" placeholder="Masukkan Nama Lengkap" class="input-style" required>
+        </div>
+        <div>
+          <p class="input-label">Email</p>
+          <input type="email" placeholder="Masukkan Email" class="input-style" required>
+        </div>
+        <div>
+          <p class="input-label">Tanggal Lahir</p>
+          <input type="date" placeholder="Masukkan Tanggal Lahir" class="input-style" required>
+        </div>
+        <div>
+          <p class="input-label">Password</p>
+          <input type="password" placeholder="Masukkan Password" class="input-style" required>
+        </div>
+        <div>
+          <p class="input-label">Konfirmasi Password</p>
+          <input type="password" placeholder="Masukkan Konfirmasi Password" class="input-style" required>
+        </div>
+        
+        <button type="submit" class="w-full bg-[#546254] text-white py-3 rounded-md mb-4 text-sm font-semibold transition-colors hover:bg-[#43543d]">
+          Registrasi
+        </button>
+      </form>
+      
+      <p class="text-center mt-4 sub-title-font">Sudah mempunyai akun? <a href="#" class="text-[#40c057] font-semibold">Login disini</a></p>
+    </div>
+
+    <!-- Right panel -->
+    <div class="w-1/2">
+      <img
+        src="image.png"
+        alt="Face with acne"
+        class="h-full w-full object-cover"
+        loading="lazy"
+      />
+    </div>
+  </div>
+</body>
+</html>
