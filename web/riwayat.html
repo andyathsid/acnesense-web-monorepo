@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>AcneSense - Riwayat Deteksi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    <style>
+      body,
+      html {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        padding: 0;
+        font-family: "Manrope", sans-serif;
+      }
+      .header-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+      }
+      .header-desktop-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 600;
+        font-size: 24px;
+      }
+      .title-font {
+        font-weight: 800;
+        font-size: 1.75rem; /* 28px approx */
+        user-select: none;
+      }
+      .accent-green {
+        color: #40c057;
+      }
+      .sub-title-font {
+        font-family: "Maven Pro", sans-serif;
+        font-weight: 500;
+        font-size: 0.875rem; /* 14px */
+        user-select: none;
+      }
+      .icon-style {
+        font-size: 1.25rem;
+      }
+      /* Rounded corner style for each button (similar radius on top-left) */
+      .btn-rounded {
+        border-top-left-radius: 1rem;
+      }
+      /* Custom scrollbar for desktop version */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile Version -->
+    <div class="block md:hidden h-screen bg-white relative flex flex-col">
+      <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center justify-between">
+        <div class="flex items-center">
+          <button aria-label="Back" class="mr-5 text-black select-none">
+            <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
+          </button>
+          <h1 class="text-black header-font select-none">Riwayat</h1>
+        </div>
+        <div class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+          <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
+        </div>
+      </header>
+  
+      <main class="flex-1 p-6 bg-white overflow-y-auto">
+        <div class="space-y-4">
+          <!-- Riwayat Item -->
+          <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+            <div class="w-1/3 p-2">
+              <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+            </div>
+            <div class="w-2/3 p-3 flex flex-col justify-center">
+              <h2 class="font-bold text-lg">Jerawat Batu</h2>
+              <p class="text-sm text-gray-600">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+              <p class="text-xs text-gray-500 mt-1">20 Desember 2024</p>
+            </div>
+          </div>
+          <!-- Repeat for other history items -->
+          <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+            <div class="w-1/3 p-2">
+              <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+            </div>
+            <div class="w-2/3 p-3 flex flex-col justify-center">
+              <h2 class="font-bold text-lg">Jerawat Batu</h2>
+              <p class="text-sm text-gray-600">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+              <p class="text-xs text-gray-500 mt-1">20 Desember 2024</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+            <div class="w-1/3 p-2">
+              <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+            </div>
+            <div class="w-2/3 p-3 flex flex-col justify-center">
+              <h2 class="font-bold text-lg">Jerawat Batu</h2>
+              <p class="text-sm text-gray-600">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+              <p class="text-xs text-gray-500 mt-1">20 Desember 2024</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+            <div class="w-1/3 p-2">
+              <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+            </div>
+            <div class="w-2/3 p-3 flex flex-col justify-center">
+              <h2 class="font-bold text-lg">Jerawat Batu</h2>
+              <p class="text-sm text-gray-600">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+              <p class="text-xs text-gray-500 mt-1">20 Desember 2024</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+            <div class="w-1/3 p-2">
+              <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+            </div>
+            <div class="w-2/3 p-3 flex flex-col justify-center">
+              <h2 class="font-bold text-lg">Jerawat Batu</h2>
+              <p class="text-sm text-gray-600">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+              <p class="text-xs text-gray-500 mt-1">20 Desember 2024</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Desktop Version -->
+    <div class="hidden md:flex w-full h-screen mx-auto bg-[#D6EBD5] rounded-2xl overflow-hidden">
+      <div class="flex flex-1 items-center justify-center" style="margin: 0 20px;">
+        <div class="bg-white w-full max-w-7xl rounded-2xl p-5 flex" style="min-height: 600px">
+          <!-- Left Panel -->
+          <div class="w-1/2 flex flex-col space-y-6 rounded-l-2xl bg-[#FFFFFF] p-10 text-black">
+            <header class="mb-8 pb-6 border-b border-gray-300">
+              <h1 class="title-font mb-2 select-none text-3xl">
+                Acne<span class="accent-green">Sense</span>
+              </h1>
+              <p class="sub-title-font select-none text-lg">For Your Acne Solution</p>
+            </header>
+
+            <button
+              aria-label="Foto dan deteksi sekarang"
+              class="flex items-center justify-between bg-[#2C5E5F] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#244B4B]"
+            >
+              <i class="fa-solid fa-qrcode icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg"
+                >Foto dan deteksi <br> sekarang!</span
+              >
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+
+            <button
+              aria-label="Riwayat deteksi"
+              class="flex items-center justify-between bg-[#FF8A65] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#e3734f]"
+            >
+              <i class="fa-regular fa-file-lines icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg">Riwayat deteksi</span>
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+
+            <button
+              aria-label="Mulai chat dengan AI"
+              class="flex items-center justify-between bg-[#484DA1] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#3d43a0]"
+            >
+              <i class="fa-solid fa-robot icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg">Mulai chat dengan <br> AI</span>
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+          </div>
+
+          <!-- Right Panel -->
+          <div class="w-2/3 flex flex-col rounded-r-2xl overflow-hidden">
+            <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none">
+              <h2 class="header-desktop-font text-white">Riwayat</h2>
+              <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+                <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
+              </div>
+            </header>
+            
+            <div class="p-10 flex-1 overflow-y-auto custom-scrollbar">
+              <div class="space-y-6">
+                <!-- Riwayat Item -->
+                <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+                  <div class="w-1/3 p-2">
+                    <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                  <div class="w-2/3 p-4 flex flex-col justify-center">
+                    <h2 class="font-bold text-xl">Jerawat Batu</h2>
+                    <p class="text-sm text-gray-600 mt-1">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+                    <p class="text-xs text-gray-500 mt-2">20 Desember 2024</p>
+                  </div>
+                </div>
+                <!-- Repeat for other history items -->
+                <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+                  <div class="w-1/3 p-2">
+                    <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                  <div class="w-2/3 p-4 flex flex-col justify-center">
+                    <h2 class="font-bold text-xl">Jerawat Batu</h2>
+                    <p class="text-sm text-gray-600 mt-1">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+                    <p class="text-xs text-gray-500 mt-2">20 Desember 2024</p>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+                  <div class="w-1/3 p-2">
+                    <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                  <div class="w-2/3 p-4 flex flex-col justify-center">
+                    <h2 class="font-bold text-xl">Jerawat Batu</h2>
+                    <p class="text-sm text-gray-600 mt-1">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+                    <p class="text-xs text-gray-500 mt-2">20 Desember 2024</p>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+                  <div class="w-1/3 p-2">
+                    <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                  <div class="w-2/3 p-4 flex flex-col justify-center">
+                    <h2 class="font-bold text-xl">Jerawat Batu</h2>
+                    <p class="text-sm text-gray-600 mt-1">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+                    <p class="text-xs text-gray-500 mt-2">20 Desember 2024</p>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md flex overflow-hidden">
+                  <div class="w-1/3 p-2">
+                    <img src="cacar.png" alt="Acne Detection" class="w-full h-full object-cover rounded-lg" />
+                  </div>
+                  <div class="w-2/3 p-4 flex flex-col justify-center">
+                    <h2 class="font-bold text-xl">Jerawat Batu</h2>
+                    <p class="text-sm text-gray-600 mt-1">Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah</p>
+                    <p class="text-xs text-gray-500 mt-2">20 Desember 2024</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
