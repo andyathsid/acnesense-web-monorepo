@@ -1,0 +1,141 @@
+id,question
+Papule,What are common locations for papule acne?
+Papule,Which treatments are initially recommended for papule acne?
+Papule,"Can over-the-counter products help with papule acne, and if so, which ones?"
+Papule,What skincare ingredients should I avoid when dealing with papule acne?
+Papule,How can I prevent or manage the inflammation associated with papule acne?
+Pustule,What are characteristics of a pustule?
+Pustule,Where on the body do pustules commonly appear?
+Pustule,What causes pustular acne?
+Pustule,Which treatments and OTC ingredients are recommended for pustules?
+Pustule,What skincare recommendations should I follow for pustules?
+Cyst,What are common locations for cystic acne?
+Cyst,What causes cystic acne?
+Cyst,What is initial treatment for cystic acne?
+Cyst,Are there any OTC options for cystic acne?
+Cyst,Which skincare ingredients should I avoid with cystic acne?
+Nodule,What are common locations for nodular acne?
+Nodule,What is the typical cause of nodule formation?
+Nodule,Which initial treatments are recommended for severe nodules?
+Nodule,Why is there limited efficacy with over-the-counter (OTC) ingredients for nodules?
+Nodule,Which skincare ingredients should be avoided when treating nodular acne?
+Blackhead,What is a blackhead?
+Blackhead,Where do blackheads commonly occur on the face?
+Blackhead,What causes blackheads to form?
+Blackhead,Which treatments are recommended for blackheads?
+Blackhead,What over-the-counter ingredients should be avoided when treating blackheads?
+Whitehead,What is a whitehead and where do they commonly occur?
+Whitehead,What causes whiteheads to form on my skin?
+Whitehead,Which initial treatments are recommended for whiteheads?
+Whitehead,Can you suggest some OTC ingredients that help with whiteheads?
+Whitehead,What skincare recommendations should I follow to manage whiteheads?
+Acne Conglobata,What are common locations for Acne Conglobata?
+Acne Conglobata,What causes severe interconnected nodules and abscesses forming tunnels under the skin?
+Acne Conglobata,How should treatment be initiated for this type of acne?
+Acne Conglobata,"Is there an effective use of over-the-counter ingredients for Acne Conglobata, or is professional-grade care necessary?"
+Acne Conglobata,Which skincare ingredients should I avoid to manage Acne Conglobata?
+Acne Mechanica,What are common locations for Acne Mechanica?
+Acne Mechanica,What causes Acne Mechanica?
+Acne Mechanica,What is initial treatment recommended for Acne Mechanica?
+Acne Mechanica,What over-the-counter ingredients can help treat Acne Mechanica?
+Acne Mechanica,What skincare recommendations are given for managing Acne Mechanica?
+Hormonal Acne,What is hormonal acne and what causes it?
+Hormonal Acne,Where on the face does hormonal acne typically appear?
+Hormonal Acne,Which treatments are initially recommended for hormonal acne?
+Hormonal Acne,What over-the-counter ingredients can help manage hormonal acne symptoms?
+Hormonal Acne,What skincare products should I avoid using if I have hormonal acne?
+Acne Fulminans,What is Acne Fulminans and how does it differ from common acne?
+Acne Fulminans,Where on the body does Acne Fulminans typically occur?
+Acne Fulminans,What are some possible causes of Acne Fulminans?
+Acne Fulminans,Which treatments are recommended for Acne Fulminans and why cannot over-the-counter products be used?
+Acne Fulminans,What skincare practices are advised or to avoid for someone with Acne Fulminans?
+Excoriated Acne,What is Excoriated Acne?
+Excoriated Acne,Where typically does Excoriated Acne occur on the face?
+Excoriated Acne,Why do people get Excoriated Acne according to common causes?
+Excoriated Acne,What are some initial treatments for Excoriated Acne?
+Excoriated Acne,Which over-the-counter ingredients can help manage Excoriated Acne symptoms?
+Pyoderma Faciale (Rosacea Fulminans),What is the initial treatment for Pyoderma Faciale?
+Pyoderma Faciale (Rosacea Fulminans),Which prescription ingredients are commonly used for this acne type?
+Pyoderma Faciale (Rosacea Fulminans),Where on the face does Pyoderma Faciale typically appear?
+Pyoderma Faciale (Rosacea Fulminans),What should be avoided in skincare products due to this condition?
+Pyoderma Faciale (Rosacea Fulminans),Are there any over-the-counter options available for managing symptoms of Pyoderma Faciale?
+Gram-Negative Folliculitis,What is Gram-Negative Folliculitis?
+Gram-Negative Folliculitis,Where does it typically occur?
+Gram-Negative Folliculitis,Why does it happen after antibiotic use?
+Gram-Negative Folliculitis,How can I treat it initially?
+Gram-Negative Folliculitis,Which skincare ingredients should I avoid?
+How does Acne Sense classify my acne?,What technology does Acne Sense use for acne classification?
+How does Acne Sense classify my acne?,How do its results get validated against medical guidelines?
+How does Acne Sense classify my acne?,Can you explain the process of lesion detection by Acne Sense?
+How does Acne Sense classify my acne?,Is there any specific dataset used for training the deep learning model in Acne Sense?
+How does Acne Sense classify my acne?,Does Acne Sense provide explanations or reasons for its diagnosis?
+Is my skin photo data stored or shared?,Is my skin photo data stored or shared by the application?
+Is my skin photo data stored or shared?,Does the application comply with GDPR and HIPAA standards for privacy protection?
+Is my skin photo data stored or shared?,What happens to the processed anonymized photos after analysis?
+Is my skin photo data stored or shared?,Can I trust the app with my personal information regarding privacy concerns?
+Is my skin photo data stored or shared?,Are there any measures taken by the app to ensure that my data remains confidential?
+How accurate is the AI in detecting acne types?,How accurate is the AI in detecting acne types?
+How accurate is the AI in detecting acne types?,Can the AI distinguish between common and rare/acne complex cases?
+How accurate is the AI in detecting acne types?,What level of accuracy can I expect for my specific case type?
+How accurate is the AI in detecting acne types?,When should I seek verification from a dermatologist instead of the app?
+How accurate is the AI in detecting acne types?,Does the AI provide explanations on why it made its diagnosis?
+Can Acne Sense replace a dermatologist?,Can Acne Sense replace a dermatologist?
+Can Acne Sense replace a dermatologist?,What should I do if my acne is severe or persistent?
+Can Acne Sense replace a dermatologist?,Is Acne Sense suitable for all types of acne?
+Can Acne Sense replace a dermatologist?,Can the app diagnose cystic and nodular acne?
+Can Acne Sense replace a dermatologist?,When does Acne Sense suggest consulting a specialist?
+What should I do if the app misidentifies my acne?,How do I report persistent misidentification of my acne type?
+What should I do if the app misidentifies my acne?,What should I do if the app doesn't recognize my skin tone correctly?
+What should I do if the app misidentifies my acne?,Can I manually correct the acne classification if the photo is not clear?
+What should I do if the app misidentifies my acne?,"If I'm unsure about the severity level of my acne, how can I get accurate information in the app?"
+What should I do if the app misidentifies my acne?,How can I improve accuracy when taking photos for the app's analysis?
+Does the app work for all skin tones?,Does your app effectively diagnose acne on all skin tones?
+Does the app work for all skin tones?,Is there any bias with different skin colors when using your tool for acne assessment?
+Does the app work for all skin tones?,Can I trust the diagnosis accuracy of my specific skin tone?
+Does the app work for all skin tones?,How does your software handle lighting variations during analysis?
+Does the app work for all skin tones?,What steps can I take if the app's results are inconsistent with my actual skin condition?
+How are treatment recommendations generated?,How do treatment recommendations get personalized for my acne condition?
+How are treatment recommendations generated?,What factors influence the generation of acne treatment suggestions within the app?
+How are treatment recommendations generated?,Can you explain how dermatology guidelines are integrated into the app's recommendation system?
+How are treatment recommendations generated?,Is there a process to ensure that suggested treatments consider skin sensitivity and age?
+How are treatment recommendations generated?,"Before starting any recommended treatment, what precautionary step should I take?"
+Can I use Acne Sense for body acne (back/cheast)?,Can Acne Sense be used for diagnosing body acne on back and chest?
+Can I use Acne Sense for body acne (back/cheast)?,What should I do if my back or chest is hairy when uploading photos for analysis?
+Can I use Acne Sense for body acne (back/cheast)?,Are there any specific guidelines for lighting while taking pictures of acne on the body?
+Can I use Acne Sense for body acne (back/cheast)?,Is Acne Sense suitable for diagnosing and treating different types of body acne?
+Can I use Acne Sense for body acne (back/cheast)?,Does the application offer guidance on after-treatment care for body acne?
+Why does the app ask for my age and skin type?,Why is my age and skin type important for acne treatment suggestions?
+Why does the app ask for my age and skin type?,How do these details affect the recommended products or treatments?
+Why does the app ask for my age and skin type?,What specific ingredients should I look for based on being sensitive-skinned?
+Why does the app ask for my age and skin type?,Can you explain how adult skin benefits from certain ingredients in acne management?
+Why does the app ask for my age and skin type?,How does oily skin influence the selection of acne-fighting products?
+Are the skincare product recommendations sponsored?,Are skincare product recommendations sponsored?
+Are the skincare product recommendations sponsored?,What criteria do you use for suggesting products?
+Are the skincare product recommendations sponsored?,Do you prioritize affordable options?
+Are the skincare product recommendations sponsored?,How are widely available products chosen?
+Are the skincare product recommendations sponsored?,Is there any partnership involved in your product suggestions?
+What if I have multiple acne types at once?,How does Acne Sense handle multiple acne types simultaneously?
+What if I have multiple acne types at once?,What kind of combination care tips does Acne Sense provide for mixed acne cases?
+What if I have multiple acne types at once?,Can I prioritize certain types of acne based on severity using Acne Sense?
+What if I have multiple acne types at once?,Does Acne Sense offer specific advice for worsening ingredients for different acne types?
+What if I have multiple acne types at once?,Is it possible to get guidance on managing both cystic and blackhead acne simultaneously with this application?
+How often should I use the app for tracking progress?,How often should I use the app for tracking progress?
+How often should I use the app for tracking progress?,What does the app do with my weekly photo updates?
+How often should I use the app for tracking progress?,Can the app adjust advice based on my skin's condition changes?
+How often should I use the app for tracking progress?,Is there a recommended frequency for adjusting treatment plans in the app?
+How often should I use the app for tracking progress?,Does the app provide any specific guidance for acne treatment?
+Does the app work offline?,Does the app work offline?
+Does the app work offline?,Is a stable internet connection necessary for accurate results?
+Does the app work offline?,Can the AI processing be done on local device instead of cloud?
+Does the app work offline?,What should I do if my internet connection is unstable during use?
+Does the app work offline?,Are there any alternative methods to get accurate diagnoses when offline?
+Can I share results with my dermatologist?,Can I share my acne diagnosis and treatment plan with my dermatologist?
+Can I share results with my dermatologist?,How do I export a PDF report from the app?
+Can I share results with my dermatologist?,"Does the exported report include all my acne history, classifications, and recommendations for specialist review?"
+Can I share results with my dermatologist?,What format will the exported PDF report have in terms of organization of information?
+Can I share results with my dermatologist?,Is there a limit to how often or when I can share my results with my dermatologist?
+Is Acne Sense free to use?,Is Acne Sense free?
+Is Acne Sense free to use?,What does the free version of Acne Sense offer?
+Is Acne Sense free to use?,Do I need a subscription for premium features on Acne Sense?
+Is Acne Sense free to use?,How can I track my progress with Acne Sense?
+Is Acne Sense free to use?,Does Acne Sense provide personalized regimens?
