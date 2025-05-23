@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <title>AcneSense - Hasil Deteksi</title>
+    <title>AcneSense - Preview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -95,6 +95,82 @@
           max-height: 100%;
         }
       }
+
+      /* Camera preview styles */
+      .camera-preview {
+        aspect-ratio: 4/3;
+        background: linear-gradient(135deg, #f5deb3 0%, #deb887 100%);
+        position: relative;
+      }
+
+      /* Decorative circles */
+      .decorative-circle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.3;
+      }
+
+      .circle-1 {
+        width: 60px;
+        height: 60px;
+        background-color: #90EE90;
+        top: 10%;
+        left: 10%;
+      }
+
+      .circle-2 {
+        width: 40px;
+        height: 40px;
+        background-color: #90EE90;
+        bottom: 15%;
+        right: 15%;
+      }
+
+      .circle-3 {
+        width: 30px;
+        height: 30px;
+        background-color: #90EE90;
+        top: 60%;
+        left: 5%;
+      }
+
+      .circle-4 {
+        width: 50px;
+        height: 50px;
+        background-color: #90EE90;
+        top: 20%;
+        right: 20%;
+      }
+
+      /* Acne spots on preview image */
+      .acne-spot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: #ff6b6b;
+        border-radius: 50%;
+        opacity: 0.8;
+      }
+
+      .spot-1 {
+        top: 25%;
+        left: 30%;
+      }
+
+      .spot-2 {
+        top: 35%;
+        right: 25%;
+      }
+
+      .spot-3 {
+        bottom: 40%;
+        left: 40%;
+      }
+
+      .spot-4 {
+        top: 50%;
+        right: 35%;
+      }
     </style>
   </head>
   <body>
@@ -105,59 +181,34 @@
           <button aria-label="Back" class="mr-5 text-black select-none">
             <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
           </button>
-          <h1 class="text-black header-font select-none">Hasil</h1>
+          <h1 class="text-black header-font select-none">Preview</h1>
         </div>
         <div class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
           <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
         </div>
       </header>
   
-      <main class="flex-1 p-6 bg-white overflow-y-auto">
-        <div class="mb-6">
-          <img src="cacar.png" alt="Acne Detection" class="w-full rounded-lg mb-4" />
-        </div>
+      <main class="flex-1 p-6 bg-white overflow-y-auto relative">
+  <!-- Decorative circles -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="decorative-circle circle-3"></div>
 
-        <div class="space-y-4">
-          <div class="bg-[#2C5E5F] text-white p-4 rounded-lg">
-            <h2 class="font-bold text-lg mb-2">Jerawat Batu</h2>
-            <p>Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah yang memiliki karakteristik khusus</p>
-          </div>
+  <!-- Camera Preview -->
+  <div class="rounded-lg mb-6 overflow-hidden">
+    <img src="cacar.png" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" />
+  </div>
 
-          <div class="bg-[#2C5E5F] text-white p-4 rounded-lg">
-            <h2 class="font-bold text-lg mb-2">Gejala</h2>
-            <ol class="list-decimal list-inside">
-              <li>Benjolan Besar dan Menonjol</li>
-              <li>Rasa Sakit dan Nyeri</li>
-              <li>Peradangan</li>
-            </ol>
-          </div>
-
-          <div class="bg-[#2C5E5F] text-white p-4 rounded-lg">
-            <h2 class="font-bold text-lg mb-2">Penanganan</h2>
-            <ol class="list-decimal list-inside">
-              <li>Cuci muka 2x sehari</li>
-              <li>Kompres dengan es</li>
-              <li>Diet dan Gaya Hidup</li>
-            </ol>
-          </div>
-
-          <!-- Additional content for testing mobile scroll -->
-          <div class="bg-[#2C5E5F] text-white p-4 rounded-lg">
-            <h2 class="font-bold text-lg mb-2">Pencegahan</h2>
-            <ol class="list-decimal list-inside">
-              <li>Menjaga kebersihan wajah</li>
-              <li>Menghindari makanan berminyak</li>
-              <li>Tidur yang cukup</li>
-              <li>Mengelola stress</li>
-            </ol>
-          </div>
-
-          <div class="bg-[#2C5E5F] text-white p-4 rounded-lg">
-            <h2 class="font-bold text-lg mb-2">Kapan Harus ke Dokter</h2>
-            <p>Segera konsultasi dengan dokter kulit jika jerawat tidak membaik setelah perawatan mandiri selama 2-3 bulan atau jika mengalami bekas luka yang parah.</p>
-          </div>
-        </div>
-      </main>
+  <!-- Action Buttons -->
+  <div class="flex space-x-4">
+    <button class="flex-1 bg-orange-400 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-500 transition-colors">
+      Foto Ulang
+    </button>
+    <button class="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+      Mulai Periksa
+    </button>
+  </div>
+</main>
     </div>
 
     <!-- Desktop Version -->
@@ -206,76 +257,36 @@
           <!-- Right Panel -->
           <div class="w-2/3 desktop-right-panel rounded-r-2xl overflow-hidden">
             <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none flex-shrink-0">
-              <h2 class="header-desktop-font text-white">Hasil</h2>
+              <h2 class="header-desktop-font text-white">Preview</h2>
               <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
                 <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
               </div>
             </header>
             
-            <div class="desktop-right-content p-10 custom-scrollbar">
-              <div class="mb-8">
-                <img src="cacar.png" alt="Acne Detection" class="w-full rounded-lg mb-6" />
-              </div>
+            <div class="desktop-right-content p-10 custom-scrollbar bg-gray-200 relative">
+  <!-- Decorative circles for desktop background only -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="decorative-circle circle-3"></div>
+  <div class="decorative-circle circle-4"></div>
 
-              <div class="space-y-6">
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Jerawat Batu</h2>
-                  <p>Jerawat batu (jerawat kistik) adalah jenis jerawat paling parah yang memiliki karakteristik khusus</p>
-                </div>
+  <div class="flex flex-col items-center">
+    <!-- Camera Preview -->
+    <div class="w-full max-w-md rounded-lg mb-8 overflow-hidden relative">
+      <img src="cacar.png" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" />
+    </div>
 
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Gejala</h2>
-                  <ol class="list-decimal list-inside space-y-2">
-                    <li>Benjolan Besar dan Menonjol</li>
-                    <li>Rasa Sakit dan Nyeri</li>
-                    <li>Peradangan</li>
-                  </ol>
-                </div>
-
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Penanganan</h2>
-                  <ol class="list-decimal list-inside space-y-2">
-                    <li>Cuci muka 2x sehari</li>
-                    <li>Kompres dengan es</li>
-                    <li>Diet dan Gaya Hidup</li>
-                  </ol>
-                </div>
-
-                <!-- Additional content for testing desktop scroll -->
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Pencegahan</h2>
-                  <ol class="list-decimal list-inside space-y-2">
-                    <li>Menjaga kebersihan wajah dengan pembersih yang lembut</li>
-                    <li>Menghindari makanan berminyak dan tinggi gula</li>
-                    <li>Tidur yang cukup minimal 7-8 jam per hari</li>
-                    <li>Mengelola stress dengan baik</li>
-                    <li>Menggunakan produk skincare yang sesuai dengan jenis kulit</li>
-                  </ol>
-                </div>
-
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Kapan Harus ke Dokter</h2>
-                  <p class="mb-3">Segera konsultasi dengan dokter kulit jika:</p>
-                  <ol class="list-decimal list-inside space-y-2">
-                    <li>Jerawat tidak membaik setelah perawatan mandiri selama 2-3 bulan</li>
-                    <li>Mengalami bekas luka yang parah atau permanen</li>
-                    <li>Jerawat menyebabkan rasa sakit yang berlebihan</li>
-                    <li>Terjadi infeksi sekunder</li>
-                  </ol>
-                </div>
-
-                <div class="bg-[#2C5E5F] text-white p-6 rounded-lg">
-                  <h2 class="font-bold text-xl mb-3">Tips Tambahan</h2>
-                  <ol class="list-decimal list-inside space-y-2">
-                    <li>Jangan memencet atau meremas jerawat</li>
-                    <li>Gunakan handuk bersih untuk mengeringkan wajah</li>
-                    <li>Ganti sarung bantal secara teratur</li>
-                    <li>Hindari menyentuh wajah dengan tangan kotor</li>
-                    <li>Pilih produk makeup yang non-comedogenic</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
+    <!-- Action Buttons -->
+    <div class="flex space-x-6 w-full max-w-md">
+      <button class="flex-1 bg-orange-400 text-white py-4 px-8 rounded-lg font-semibold hover:bg-orange-500 transition-colors text-lg">
+        Foto Ulang
+      </button>
+      <button class="flex-1 bg-green-500 text-white py-4 px-8 rounded-lg font-semibold hover:bg-green-600 transition-colors text-lg">
+        Mulai Periksa
+      </button>
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </div>
