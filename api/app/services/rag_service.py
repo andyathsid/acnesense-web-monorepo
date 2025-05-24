@@ -1,13 +1,9 @@
 import json
 import requests
 import time
-from typing import Dict, List, Any, Tuple
 import re
-
-import ingest
-
-# Initialize index
-index = ingest.load_index()
+from typing import Dict, List, Any
+from flask import current_app
 
 # Templates
 DIAGNOSIS_TEMPLATE = """
@@ -106,10 +102,12 @@ FIELD_WEIGHTS = {
 
 def search(query: str, filter_dict: Dict = None, num_results: int = 5) -> List[Dict]:
     """Search the index with the given query and filters"""
+    from flask import current_app
+    
     if filter_dict is None:
         filter_dict = {}
     
-    results = index.search(
+    results = current_app.index.search(
         query=query, 
         filter_dict=filter_dict, 
         boost_dict=FIELD_WEIGHTS,
@@ -142,7 +140,7 @@ def call_llm(prompt: str, model: str = "qwen2:7b") -> str:
     """Get response from Ollama LLM"""
     try:
         response = requests.post(
-            'http://localhost:11434/api/generate',
+            current_app.config['OLLAMA_API_URL'],
             json={
                 'model': model,
                 'prompt': prompt,

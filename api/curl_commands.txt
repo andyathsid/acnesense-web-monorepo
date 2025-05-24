@@ -1,0 +1,46 @@
+# Health Check Endpoint
+# Tests if the API server is running correctly
+curl -X GET http://localhost:8000/health
+
+# Question Endpoint (Basic Question)
+# Ask a question about acne and get an answer using RAG
+curl -X POST http://localhost:8000/question \
+  -H "Content-Type: application/json" \
+  -d "{\"question\": \"What are the symptoms of cystic acne?\", \"model\": \"qwen2:7b\"}"
+
+# Question Endpoint (Treatment Question)
+# Ask about treatment options
+curl -X POST http://localhost:8000/question \
+  -H "Content-Type: application/json" \
+  -d "{\"question\": \"What are the best OTC ingredients for hormonal acne?\", \"model\": \"qwen2:7b\"}"
+
+# Feedback Endpoint
+# Submit feedback for a previous answer (replace conversation_id with an actual ID)
+curl -X POST http://localhost:8000/feedback \
+  -H "Content-Type: application/json" \
+  -d "{\"conversation_id\": \"57ae6b63-fe3b-428c-a54d-d915fad16ab9\", \"feedback\": 1}"
+
+# Diagnosis Endpoint (Single Acne Type)
+# Get treatment recommendations for a single acne type
+curl -X POST http://localhost:8000/diagnosis \
+  -H "Content-Type: application/json" \
+  -d "{\"acne_types\": [\"cystic\"], \"user_info\": {\"age\": 25, \"skin_type\": \"oily\", \"skin_tone\": \"medium\", \"skin_sensitivity\": \"moderate\"}, \"model\": \"qwen2:7b\"}"
+
+# Diagnosis Endpoint (Multiple Acne Types)
+# Get treatment recommendations for multiple acne types
+curl -X POST http://localhost:8000/diagnosis \
+  -H "Content-Type: application/json" \
+  -d "{\"acne_types\": [\"whitehead\", \"blackhead\"], \"user_info\": {\"age\": 17, \"skin_type\": \"combination\", \"skin_tone\": \"fair\", \"skin_sensitivity\": \"sensitive\"}, \"model\": \"qwen2:7b\"}"
+
+# Windows-friendly versions (with ^ line continuation and escaped quotes)
+# Health Check
+curl -X GET http://localhost:8000/health
+
+# Question
+curl -X POST http://localhost:8000/question -H "Content-Type: application/json" -d "{\"question\": \"What are the symptoms of cystic acne?\", \"model\": \"qwen2:7b\"}"
+
+# Feedback 
+curl -X POST http://localhost:8000/feedback -H "Content-Type: application/json" -d "{\"conversation_id\": \"57ae6b63-fe3b-428c-a54d-d915fad16ab9\", \"feedback\": 1}"
+
+# Diagnosis
+curl -X POST http://localhost:8000/diagnosis -H "Content-Type: application/json" -d "{\"acne_types\": [\"cystic\"], \"user_info\": {\"age\": 25, \"skin_type\": \"oily\", \"skin_tone\": \"medium\", \"skin_sensitivity\": \"moderate\"}, \"model\": \"qwen2:7b\"}"
