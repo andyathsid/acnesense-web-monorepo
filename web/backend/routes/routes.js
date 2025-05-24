@@ -360,4 +360,8 @@ router.get('/api/session-status', (req, res) => {
   }
 });
 
+router.use((req, res) => {
+  res.status(404).render('404'); // Mengarahkan ke views/404.ejs
+})
+
 module.exports = router;
