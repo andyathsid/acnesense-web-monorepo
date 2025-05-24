@@ -1,21 +1,10 @@
 import pandas as pd
-
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-import numpy as np
 class Index:
-    """
-    A simple search index using TF-IDF and cosine similarity for text fields and exact matching for keyword fields.
-
-    Attributes:
-        text_fields (list): List of text field names to index.
-        keyword_fields (list): List of keyword field names to index.
-        vectorizers (dict): Dictionary of TfidfVectorizer instances for each text field.
-        keyword_df (pd.DataFrame): DataFrame containing keyword field data.
-        text_matrices (dict): Dictionary of TF-IDF matrices for each text field.
-        docs (list): List of documents indexed.
-    """
+    """A simple search index using TF-IDF and cosine similarity for text fields and exact matching for keyword fields."""
 
     def __init__(self, text_fields, keyword_fields, vectorizer_params={}):
         """
@@ -62,12 +51,12 @@ class Index:
 
         Args:
             query (str): The search query string.
-            filter_dict (dict): Dictionary of keyword fields to filter by. Keys are field names and values are the values to filter by.
-            boost_dict (dict): Dictionary of boost scores for text fields. Keys are field names and values are the boost scores.
-            num_results (int): The number of top results to return. Defaults to 10.
+            filter_dict (dict): Dictionary of keyword fields to filter by. 
+            boost_dict (dict): Dictionary of boost scores for text fields.
+            num_results (int): The number of top results to return.
 
         Returns:
-            list of dict: List of documents matching the search criteria, ranked by relevance.
+            list of dict: Documents matching the search criteria, ranked by relevance.
         """
         query_vecs = {field: self.vectorizers[field].transform([query]) for field in self.text_fields}
         scores = np.zeros(len(self.docs))
@@ -84,7 +73,7 @@ class Index:
                 mask = self.keyword_df[field] == value
                 scores = scores * mask.to_numpy()
 
-        # Use argpartition to get top num_results indices
+        # Get top results
         top_indices = np.argpartition(scores, -num_results)[-num_results:]
         top_indices = top_indices[np.argsort(-scores[top_indices])]
 
