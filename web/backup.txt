@@ -1,0 +1,9 @@
+    <!-- Lingkaran dekoratif -->
+    <div class="absolute top-[-80px] right-[-80px] w-[160px] h-[160px] bg-[#546254] rounded-full opacity-20 pointer-events-none"></div>
+    <div class="absolute bottom-[-100px] left-[-100px] w-[200px] h-[200px] bg-[#546254] rounded-full opacity-15 pointer-events-none"></div>
+
+    //lingkaran dekoratif lebih banyak:
+    <div class="absolute top-[-80px] right-[-80px] w-[160px] h-[160px] bg-[#546254] rounded-full opacity-20 pointer-events-none"></div>
+    <div class="absolute bottom-[-100px] left-[-100px] w-[200px] h-[200px] bg-[#546254] rounded-full opacity-15 pointer-events-none"></div>
+    <div class="absolute top-[20%] left-[-40px] w-[80px] h-[80px] bg-[#546254] rounded-full opacity-10 pointer-events-none"></div>
+    <div class="absolute top-[70%] right-[80px] w-[80px] h-[80px] bg-[#546254] rounded-full opacity-10 pointer-events-none"></div>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>AcneSense - Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    <style>
+      body,
+      html {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        padding: 0;
+        font-family: "Manrope", sans-serif;
+      }
+      .header-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+      }
+      .header-desktop-font{
+        font-family: 'poppins', sans-serif;
+        font-weight: 600;
+        font-size: 24px;
+      }
+      .title-font {
+        font-weight: 800;
+        font-size: 1.75rem; /* 28px approx */
+        user-select: none;
+      }
+      .accent-green {
+        color: #40c057;
+      }
+      .sub-title-font {
+        font-family: "Maven Pro", sans-serif;
+        font-weight: 500;
+        font-size: 0.875rem; /* 14px */
+        user-select: none;
+      }
+      .icon-style {
+        font-size: 1.25rem;
+      }
+      /* Rounded corner style for each button (similar radius on top-left) */
+      .btn-rounded {
+        border-top-left-radius: 1rem;
+      }
+
+      /* Custom scrollbar for desktop version */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+
+      /* Desktop specific styles */
+      @media (min-width: 768px) {
+        .desktop-container {
+          max-height: 85vh;
+          height: 85vh;
+        }
+        .desktop-right-panel {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+        .desktop-right-content {
+          flex: 1;
+          overflow-y: auto;
+          min-height: 0;
+        }
+        .desktop-left-panel {
+          overflow-y: auto;
+          max-height: 100%;
+        }
+      }
+
+      /* Camera preview styles */
+      .camera-preview {
+        aspect-ratio: 4/3;
+        background: linear-gradient(135deg, #f5deb3 0%, #deb887 100%);
+        position: relative;
+      }
+
+      /* Decorative circles */
+      .decorative-circle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.3;
+      }
+
+      .circle-1 {
+        width: 60px;
+        height: 60px;
+        background-color: #90EE90;
+        top: 10%;
+        left: 10%;
+      }
+
+      .circle-2 {
+        width: 40px;
+        height: 40px;
+        background-color: #90EE90;
+        bottom: 15%;
+        right: 15%;
+      }
+
+      .circle-3 {
+        width: 30px;
+        height: 30px;
+        background-color: #90EE90;
+        top: 60%;
+        left: 5%;
+      }
+
+      .circle-4 {
+        width: 50px;
+        height: 50px;
+        background-color: #90EE90;
+        top: 20%;
+        right: 20%;
+      }
+
+      /* Acne spots on preview image */
+      .acne-spot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: #ff6b6b;
+        border-radius: 50%;
+        opacity: 0.8;
+      }
+
+      .spot-1 {
+        top: 25%;
+        left: 30%;
+      }
+
+      .spot-2 {
+        top: 35%;
+        right: 25%;
+      }
+
+      .spot-3 {
+        bottom: 40%;
+        left: 40%;
+      }
+
+      .spot-4 {
+        top: 50%;
+        right: 35%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile Version -->
+    <div class="block md:hidden h-screen bg-white relative flex flex-col">
+      <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center justify-between">
+        <div class="flex items-center">
+          <button aria-label="Back" class="mr-5 text-black select-none">
+            <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
+          </button>
+          <h1 class="text-black header-font select-none">Preview</h1>
+        </div>
+        <div class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+          <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
+        </div>
+      </header>
+  
+      <main class="flex-1 p-6 bg-white overflow-y-auto relative">
+  <!-- Decorative circles -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="decorative-circle circle-3"></div>
+
+  <!-- Camera Preview -->
+  <div class="rounded-lg mb-6 overflow-hidden">
+    <img src="cacar.png" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" />
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex space-x-4">
+    <button class="flex-1 bg-orange-400 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-500 transition-colors">
+      Foto Ulang
+    </button>
+    <button class="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+      Mulai Periksa
+    </button>
+  </div>
+</main>
+    </div>
+
+    <!-- Desktop Version -->
+    <div class="hidden md:flex w-full h-screen mx-auto bg-[#D6EBD5] rounded-2xl overflow-hidden">
+      <div class="flex flex-1 items-center justify-center" style="margin: 0 20px;">
+        <div class="bg-white w-full max-w-7xl rounded-2xl p-5 flex desktop-container">
+          <!-- Left Panel -->
+          <div class="w-1/2 flex flex-col space-y-6 rounded-l-2xl bg-[#FFFFFF] p-10 text-black desktop-left-panel">
+            <header class="mb-8 pb-6 border-b border-gray-300">
+              <h1 class="title-font mb-2 select-none text-3xl">
+                Acne<span class="accent-green">Sense</span>
+              </h1>
+              <p class="sub-title-font select-none text-lg">For Your Acne Solution</p>
+            </header>
+
+            <button
+              aria-label="Foto dan deteksi sekarang"
+              class="flex items-center justify-between bg-[#2C5E5F] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#244B4B]"
+            >
+              <i class="fa-solid fa-qrcode icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg"
+                >Foto dan deteksi <br> sekarang!</span
+              >
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+
+            <button
+              aria-label="Riwayat deteksi"
+              class="flex items-center justify-between bg-[#FF8A65] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#e3734f]"
+            >
+              <i class="fa-regular fa-file-lines icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg">Riwayat deteksi</span>
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+
+            <button
+              aria-label="Mulai chat dengan AI"
+              class="flex items-center justify-between bg-[#484DA1] text-white py-7 px-6 rounded-lg font-semibold transition-colors hover:bg-[#3d43a0]"
+            >
+              <i class="fa-solid fa-robot icon-style"></i>
+              <span class="flex-1 text-left ml-5 text-lg">Mulai chat dengan <br> AI</span>
+              <i class="fa-solid fa-arrow-right icon-style"></i>
+            </button>
+          </div>
+
+          <!-- Right Panel -->
+          <div class="w-2/3 desktop-right-panel rounded-r-2xl overflow-hidden">
+            <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none flex-shrink-0">
+              <h2 class="header-desktop-font text-white">Preview</h2>
+              <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+                <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
+              </div>
+            </header>
+            
+            <div class="desktop-right-content p-10 custom-scrollbar bg-gray-200 relative">
+  <!-- Decorative circles for desktop background only -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="decorative-circle circle-3"></div>
+  <div class="decorative-circle circle-4"></div>
+
+  <div class="flex flex-col items-center">
+    <!-- Camera Preview -->
+    <div class="w-full max-w-md rounded-lg mb-8 overflow-hidden relative">
+      <img src="cacar.png" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" />
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex space-x-6 w-full max-w-md">
+      <button class="flex-1 bg-orange-400 text-white py-4 px-8 rounded-lg font-semibold hover:bg-orange-500 transition-colors text-lg">
+        Foto Ulang
+      </button>
+      <button class="flex-1 bg-green-500 text-white py-4 px-8 rounded-lg font-semibold hover:bg-green-600 transition-colors text-lg">
+        Mulai Periksa
+      </button>
+    </div>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>AcneSense Responsive Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Maven+Pro:wght@400..900&display=swap" rel="stylesheet">
+<style>
+    body, html {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      background-color: #D6EBD5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .button-font{
+      font-family: 'poppins', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+
+    }
+    .title-font{
+      font-family: 'manrope', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+    }
+    .sub-title-font{
+      font-family: 'maven pro', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0">
+
+<!-- Mobile version (small screens) -->
+<div class="block md:hidden w-full h-screen relative rounded-none overflow-hidden bg-gray-800 shadow-lg">
+    <div class="relative w-full">
+      <img 
+        src="image.png" 
+        alt="Face with acne" 
+        class="w-full h-full object-cover" 
+        style="object-position: center top;" 
+        loading="lazy"
+      />
+      <!-- Overlay hitam dengan opacity 50% -->
+      <div class="absolute inset-0 bg-black opacity-30"></div>
+    </div>
+    <div class="bg-[#E5F6E5] rounded-t-3xl absolute bottom-0 w-full p-8 shadow-inner flex flex-col" style="height:45%">
+        <div>
+          <h1 class="text-black text-center title-font leading-8  select-none">
+            Acne<span class="text-[#40c057]">Sense</span>
+          </h1>
+          <div class="justify-end self-end mb-5">
+          <p class="text-center sub-title-font leading-8  select-none">For Your Acne Solution</p>
+        </div>
+        </div>
+        <div class="flex justify-center mt-auto mb-auto">
+          <div class="flex flex-col items-center">
+            <button class="w-[270px] bg-[#546254] text-white py-2 rounded-md mb-4 button-font transition-colors hover:bg-[#43543d]">
+              Login
+            </button>
+            <button class="w-[270px] bg-[#74A674] text-white py-2 rounded-md button-font transition-colors hover:bg-[#628355]">
+              Register
+            </button>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <!-- Desktop / Tablet version (medium screens and up) -->
+  <div class="hidden md:flex max-w-4xl bg-[#D6EBD5] rounded-2xl shadow-lg overflow-hidden w-full max-w-[768px]">
+<!-- Left panel -->
+<div class="bg-white w-1/2 p-10 flex flex-col justify-center items-center rounded-l-2xl text-center">
+  <h1 class="title-font mb-2 leading-6 select-none">
+    Acne<span class="text-[#40c057]">Sense</span>
+  </h1>
+  <p class="sub-title-font leading-6 mb-8 select-none">For Your Acne Solution</p>
+  <p class="mb-8 select-none font-semibold">Selamat Datang!</p>
+  <button class="w-full bg-[#546254] text-white py-3 rounded-md mb-4 text-sm font-semibold transition-colors hover:bg-[#43543d]">
+    Login
+  </button>
+  <button class="w-full bg-[#74A674] text-white py-3 rounded-md text-sm font-semibold transition-colors hover:bg-[#628355]">
+    Register
+  </button>
+</div>
+
+    <!-- Right panel -->
+    <div class="w-1/2">
+      <img
+        src="image.png"
+        alt="Face with acne"
+        class="h-full w-full object-cover"
+        loading="lazy"
+      />
+    </div>
+  </div>
+
+</body>
+</html>
