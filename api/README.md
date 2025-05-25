@@ -179,3 +179,95 @@ This API uses a Retrieval Augmented Generation (RAG) system that:
 The knowledge base consists of:
 - acne_types.csv: Information about different acne types
 - faqs.csv: Frequently asked questions about acne
+
+## Docker Setup
+
+These are some essential commands on how build, run, and manage the Docker Compose for this project.
+
+### Quick Start
+
+```bash
+# 1. Build and start all services
+docker-compose up --build
+
+# 2. In a new terminal, pull the required AI model
+docker-compose exec ollama ollama pull qwen2:7b
+
+# 3. Test the API
+curl -X GET http://localhost:8000/health
+
+### View logs
+```bash
+# View logs from all services
+docker-compose logs
+
+# View logs from specific service
+docker-compose logs api
+docker-compose logs ollama
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# View last 50 lines
+docker-compose logs --tail=50
+```
+
+### Check available models
+```bash
+# List all pulled models
+docker-compose exec ollama ollama list
+
+# Check if ollama service is running
+docker-compose exec ollama ollama serve
+```
+
+### Check service status
+```bash
+# Check running containers
+docker-compose ps
+
+# Check container health
+docker-compose exec api curl -f http://localhost:8000/health
+docker-compose exec ollama curl -f http://localhost:11434/api/tags
+```
+
+### Stop running services
+```bash
+# Stop all services (graceful shutdown)
+docker-compose down
+
+# Stop services but keep containers
+docker-compose stop
+
+# Stop specific service
+docker-compose stop api
+docker-compose stop ollama
+
+# Force stop (immediate)
+docker-compose kill
+```
+
+### Restart services
+```bash
+# Restart all services
+docker-compose restart
+
+# Restart specific service
+docker-compose restart api
+docker-compose restart ollama
+```
+
+### Remove containers
+```bash
+# Stop and remove containers
+docker-compose down
+
+# Remove containers and networks
+docker-compose down --remove-orphans
+
+# Remove containers, networks, and images
+docker-compose down --rmi all
+
+# Remove everything including volumes (⚠️ DELETES ALL DATA)
+docker-compose down --volumes --rmi all
+```
