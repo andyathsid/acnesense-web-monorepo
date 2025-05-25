@@ -31,4 +31,4 @@ ENV PYTHONPATH=/app
 EXPOSE 8000
 
 # Use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--worker-tmp-dir", "/dev/shm", "--workers", "4", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
