@@ -6,3 +6,4 @@ scikit-learn
 scipy
 supabase
 google-generativeai
+flask_cors
