@@ -1,10 +1,11 @@
 from flask import Flask
 from .config import Config
+from flask_cors import CORS
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    
+    CORS(app)
     # Initialize services
     from app.utils.index_loader import load_index
     app.index = load_index(app)
