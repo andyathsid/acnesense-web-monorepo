@@ -13,5 +13,5 @@ class Config:
     FAQS_PATH = os.getenv('FAQS_PATH', 'data/knowledge-base/faqs.csv')
     
     # LLM configuration
-    DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'qwen2:7b')
-    OLLAMA_API_URL = os.getenv('OLLAMA_API_URL', 'http://localhost:11434/api/generate')
+    DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'gemini-2.5-flash')
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')

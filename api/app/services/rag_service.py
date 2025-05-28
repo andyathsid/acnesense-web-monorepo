@@ -4,6 +4,7 @@ import time
 import re
 from typing import Dict, List, Any
 from flask import current_app
+import google.generativeai as genai
 
 # Templates
 DIAGNOSIS_TEMPLATE = """
@@ -136,27 +137,29 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     
     return context
 
-def call_llm(prompt: str, model: str = "qwen2:7b") -> str:
-    """Get response from Ollama LLM"""
+def call_llm(prompt: str, model: str = "gemini-2.5-flash") -> str:
+    """Get response from Google Gemini model"""
     try:
-        response = requests.post(
-            current_app.config['OLLAMA_API_URL'],
-            json={
-                'model': model,
-                'prompt': prompt,
-                'stream': False
-            },
-            timeout=60
-        )
+        # Configure the Gemini API
+        genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
         
-        if response.status_code == 200:
-            return response.json()['response']
-        else:
-            return f"Error: {response.status_code} - {response.text}"
+        # Create a Gemini model instance
+        generation_config = {
+            "temperature": 0.4,
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_output_tokens": 2048,
+        }
+        
+        # Get response from Gemini
+        model_instance = genai.GenerativeModel(model_name=model, generation_config=generation_config)
+        response = model_instance.generate_content(prompt)
+        
+        return response.text
     except Exception as e:
-        return f"Error connecting to Ollama: {str(e)}"
+        return f"Error connecting to Gemini: {str(e)}"
 
-def answer_question(query: str, model: str = "qwen2:7b") -> str:
+def answer_question(query: str, model: str = "gemini-2.5-flash") -> str:
     """Answer a question using RAG"""
     search_results = search(query, num_results=5)
     context = build_context_from_documents(search_results)
@@ -169,7 +172,7 @@ def answer_question(query: str, model: str = "qwen2:7b") -> str:
     answer = call_llm(prompt, model)
     return answer
 
-def evaluate_relevance(question: str, answer: str, model: str = "qwen2:7b") -> Dict[str, str]:
+def evaluate_relevance(question: str, answer: str, model: str = "gemini-2.5-flash") -> Dict[str, str]:
     """Evaluate the relevance of the answer to the question"""
     prompt = EVALUATION_TEMPLATE.format(
         question=question,
@@ -190,7 +193,7 @@ def evaluate_relevance(question: str, answer: str, model: str = "qwen2:7b") -> D
     except json.JSONDecodeError:
         return {"Relevance": "UNKNOWN", "Explanation": "Failed to parse evaluation"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = "qwen2:7b") -> str:
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = "gemini-2.5-flash") -> str:
     """Process CV diagnosis results and provide recommendations"""
     patient_profile = f"""
     Age: {user_info.get('age', 'Unknown')}
@@ -234,7 +237,7 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
     
     return response
 
-def rag(query: str, model: str = "qwen2:7b") -> Dict[str, Any]:
+def rag(query: str, model: str = "gemini-2.5-flash") -> Dict[str, Any]:
     """Main RAG function to process a user query, now with relevance evaluation"""
     t0 = time.time()
     
