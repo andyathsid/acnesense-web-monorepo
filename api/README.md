@@ -72,8 +72,7 @@ Ask a question about acne and get an answer.
 curl -X POST http://localhost:8000/question \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "What are the symptoms of cystic acne?",
-    "model": "qwen2:7b"
+    "question": "What are the symptoms of cystic acne?"
   }'
 ```
 
@@ -124,8 +123,7 @@ curl -X POST http://localhost:8000/diagnosis \
       "skin_type": "Oily",
       "skin_tone": "Medium",
       "skin_sensitivity": "Medium"
-    },
-    "model": "qwen2:7b"
+    }
   }'
 ```
 

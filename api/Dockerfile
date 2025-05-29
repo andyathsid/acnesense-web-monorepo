@@ -1,26 +1,34 @@
 FROM python:3.11-slim
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Install dependencies
+# Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Install gunicorn
+RUN pip install gunicorn
 
 # Copy application code
 COPY . .
 
-# Run a script to download and pull the model when container starts
-RUN echo '#!/bin/bash\n\
-echo "Waiting for Ollama service to be ready..."\n\
-until curl -s http://ollama:11434/api/tags > /dev/null; do\n\
-  sleep 5\n\
-done\n\
-echo "Pulling qwen2:7b model..."\n\
-curl -X POST http://ollama:11434/api/pull -d "{\"model\":\"qwen2:7b\"}"\n\
-echo "Model pulled. Starting Flask application..."\n\
-gunicorn --bind 0.0.0.0:8000 --timeout 300 --workers 2 --threads 4 --worker-tmp-dir /dev/shm run:app' > /app/start.sh
+# Create a non-root user
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
-RUN chmod +x /app/start.sh
+# Set environment variables
+ENV FLASK_APP=app:create_app
+ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
 
-# Use gunicorn as the production WSGI server
-CMD ["/app/start.sh"]
+# Expose port
+EXPOSE 8000
+
+# Use gunicorn for production
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--worker-tmp-dir", "/dev/shm", "--workers", "4", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
