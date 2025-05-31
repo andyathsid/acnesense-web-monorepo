@@ -1,9 +1,6 @@
 flask
 ipywidgets
 jupyterlab-widgets
-langchain
-langchain-community
-langchain-core
 numpy
 openai
 pandas
@@ -11,3 +8,4 @@ python-dotenv
 scikit-learn
 scipy
 supabase
+vllm

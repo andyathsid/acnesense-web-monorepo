@@ -1,19 +1,12 @@
 import json
+import requests
 import time
 import re
 from typing import Dict, List, Any
 from flask import current_app
+from openai import OpenAI
 
-# LangChain imports
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
-from langchain.schema import HumanMessage
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-# Templates remain unchanged
+# Templates
 DIAGNOSIS_TEMPLATE = """
 You are an expert dermatology assistant for the Acne Sense app.
 Create helpful recommendations based on the PATIENT PROFILE and ACNE INFORMATION provided.
@@ -108,42 +101,6 @@ FIELD_WEIGHTS = {
     'Category': 0.5
 }
 
-def get_llm_client(model: str = None):
-    """Get LLM client based on provider configuration"""
-    provider = current_app.config.get('LLM_PROVIDER', 'vllm')
-    
-    if provider == 'openai':
-        # For OpenAI models
-        if not model or model.startswith('Qwen'):
-            # Default to GPT model for OpenAI if specified model is not OpenAI compatible
-            model = "gpt-3.5-turbo"
-        
-        chat_model = ChatOpenAI(
-            model=model,
-            openai_api_key=current_app.config.get('OPENAI_API_KEY'),
-            temperature=0.1
-        )
-        return chat_model
-        
-    elif provider == 'vllm':
-        # For local vLLM deployment
-        from langchain.llms import OpenAI
-        
-        base_url = current_app.config.get('VLLM_API_URL', 'http://localhost:8080/v1')
-        
-        # Create a compatible OpenAI client pointing to vLLM server
-        llm = OpenAI(
-            model=model.split('/')[-1] if model else "Qwen2.5-3B-Instruct-AWQ",  # Extract model name 
-            openai_api_base=base_url,
-            # openai_api_key="dummy-key",  # vLLM doesn't require a real key
-            temperature=0.1
-        )
-        return llm
-    
-    else:
-        # Fallback to default handling
-        raise ValueError(f"Unsupported LLM provider: {provider}")
-
 def search(query: str, filter_dict: Dict = None, num_results: int = 5) -> List[Dict]:
     """Search the index with the given query and filters"""
     from flask import current_app
@@ -181,22 +138,32 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     return context
 
 def call_llm(prompt: str, model: str = None) -> str:
-    """Get response from LLM using LangChain"""
+    """Get response from vLLM using OpenAI client"""
     try:
-        llm = get_llm_client(model)
+        # Use the model from parameter or default from config
+        model_name = model or current_app.config['DEFAULT_MODEL']
         
-        # For ChatOpenAI models
-        if hasattr(llm, 'invoke'):
-            response = llm.invoke(prompt)
-            if hasattr(response, 'content'):  # For ChatOpenAI responses
-                return response.content
-            return str(response)
+        # Initialize OpenAI client for vLLM
+        client = OpenAI(
+            api_key="dummy-key",  # vLLM doesn't require real API key
+            base_url=current_app.config['VLLM_API_URL']
+        )
         
-        # For standard LLM models
-        return llm(prompt)
-            
+        # Create chat completion
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content
+        
     except Exception as e:
-        return f"Error connecting to LLM: {str(e)}"
+        return f"Error connecting to vLLM: {str(e)}"
 
 def answer_question(query: str, model: str = None) -> str:
     """Answer a question using RAG"""
@@ -211,7 +178,7 @@ def answer_question(query: str, model: str = None) -> str:
     answer = call_llm(prompt, model)
     return answer
 
-def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[str, str]:
+def evaluate_relevance(question: str, answer: str, model: str = "qwen2:7b") -> Dict[str, str]:
     """Evaluate the relevance of the answer to the question"""
     prompt = EVALUATION_TEMPLATE.format(
         question=question,
@@ -232,7 +199,7 @@ def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[st
     except json.JSONDecodeError:
         return {"Relevance": "UNKNOWN", "Explanation": "Failed to parse evaluation"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None) -> str:
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = "qwen2:7b") -> str:
     """Process CV diagnosis results and provide recommendations"""
     patient_profile = f"""
     Age: {user_info.get('age', 'Unknown')}
@@ -276,7 +243,7 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
     
     return response
 
-def rag(query: str, model: str = None) -> Dict[str, Any]:
+def rag(query: str, model: str = "qwen2:7b") -> Dict[str, Any]:
     """Main RAG function to process a user query, now with relevance evaluation"""
     t0 = time.time()
     
@@ -290,7 +257,7 @@ def rag(query: str, model: str = None) -> Dict[str, Any]:
 
     result = {
         "answer": answer,
-        "model_used": model if model else current_app.config.get('DEFAULT_MODEL', 'Qwen2.5-3B-Instruct-AWQ'),
+        "model_used": model,
         "response_time": took,
         "relevance": relevance_result.get("Relevance", "UNKNOWN"),
         "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
