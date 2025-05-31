@@ -4,7 +4,7 @@ curl -X GET http://localhost:8000/health
 
 # Question Endpoint (Basic Question)
 # Ask a question about acne and get an answer using RAG
-curl -X POST http://localhost:8000/question \
+curl -X POST http://localhost:5000/question \
   -H "Content-Type: application/json" \
   -d "{\"question\": \"What are the symptoms of cystic acne?\"}"
 
@@ -22,7 +22,7 @@ curl -X POST http://localhost:8000/feedback \
 
 # Diagnosis Endpoint (Single Acne Type)
 # Get treatment recommendations for a single acne type
-curl -X POST http://localhost:8000/diagnosis \
+curl -X POST http://localhost:5000/diagnosis \
   -H "Content-Type: application/json" \
   -d "{\"acne_types\": [\"cystic\"], \"user_info\": {\"age\": 25, \"skin_type\": \"oily\", \"skin_tone\": \"medium\", \"skin_sensitivity\": \"moderate\"}}"
 
