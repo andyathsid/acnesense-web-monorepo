@@ -1,4 +1,4 @@
-name: acne-sense-gemini
+name: acne-sense-api
 
 services:
   acne-sense-api:

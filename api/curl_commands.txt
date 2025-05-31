@@ -2,9 +2,12 @@
 # Tests if the API server is running correctly
 curl -X GET http://localhost:8000/health
 
+# Image Diagnosis Endpoint
+curl -X POST http://localhost:8000/image-diagnosis -F "image=@/root/workspace/repos/acne-sense-monorepo-dev/api/images.jpg"
+
 # Question Endpoint (Basic Question)
 # Ask a question about acne and get an answer using RAG
-curl -X POST http://localhost:5000/question \
+curl -X POST http://localhost:8000/question \
   -H "Content-Type: application/json" \
   -d "{\"question\": \"What are the symptoms of cystic acne?\"}"
 

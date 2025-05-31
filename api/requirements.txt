@@ -7,3 +7,6 @@ scipy
 supabase
 google-generativeai
 flask_cors
+tensorflow[and-cuda]
+ultralytics 
+"numpy<2"
