@@ -88,7 +88,10 @@ def diagnosis():
             return jsonify({"error": "No acne types provided"}), 400
         
         result = process_diagnosis(acne_types, user_info, model=model)
-        return jsonify({"recommendation": result})
+        return jsonify({
+            "recommendation": result,
+            "format": "markdown"
+        })
     
     except Exception as e:
         traceback.print_exc()
