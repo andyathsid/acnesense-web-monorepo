@@ -1,19 +1,20 @@
 services:
-  acne-sense-api:
+  flask:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - FLASK_PORT=${FLASK_PORT}
     container_name: acne-sense-api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${FLASK_PORT}:${FLASK_PORT}"
+    env_file:
+      - .env
     environment:
       - FLASK_APP=run.py
       - FLASK_DEBUG=0
-      - VLLM_API_URL=http://vllm-service:8080/v1/completions
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
-      - DEFAULT_MODEL=Qwen/Qwen2.5-7B-Instruct
+      # - VLLM_API_URL=http://127.0.0.1:${VLLM_PORT}/v1
     volumes:
       - ./data:/app/data
     depends_on:
@@ -21,7 +22,7 @@ services:
     networks:
       - acne-sense-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${FLASK_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -29,14 +30,18 @@ services:
 
   vllm-service:
     image: vllm/vllm-openai
-    container_name: vllm-service
+    container_name: acne-sense-vllm
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${VLLM_PORT}:${VLLM_PORT}"
+    env_file:
+      - .env
     volumes:
-      - ./models:/models:ro  #
+        - ~/.cache/huggingface:/root/.cache/huggingface
+        - ./models:/models
     command: >
       --model /models/Qwen2.5-3B-Instruct-AWQ
+      --port ${VLLM_PORT}
     networks:
       - acne-sense-network
     deploy:
@@ -45,8 +50,8 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
-
+              capabilities: 
+                - gpu
 networks:
   acne-sense-network:
     driver: bridge
