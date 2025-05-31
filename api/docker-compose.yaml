@@ -1,5 +1,7 @@
+name: acne-sense-vllm
 services:
-  flask:
+  api-service:
+    image: acne-sense-api:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -29,7 +31,7 @@ services:
       start_period: 40s
 
   vllm-service:
-    image: vllm/vllm-openai
+    image: vllm/vllm-openai:latest
     container_name: acne-sense-vllm
     restart: unless-stopped
     ports:

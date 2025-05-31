@@ -1,0 +1,34 @@
+# Virtual environment
+.acne-sense-api-venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*-venv/
+
+# Docker files (not needed inside the container)
+Dockerfile
+docker-compose*.yaml
+.dockerignore
+
+# Data and models (these are mounted as volumes)
+data/
+models/
+
+# Development files
+notebook.ipynb
+curl_commands.txt
+
+# Git and other VCS
+.git/
+.gitignore
+
+# Cache folders
+.cache/
+
+# Environment files (for security reasons)
+.env
+.flaskenv
