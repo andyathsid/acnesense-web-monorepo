@@ -275,11 +275,16 @@ class JerawatPipeline:
         detected_boxes, img = self.detector.detect(image_path)
         img_height, img_width = img.shape[:2]
 
+        # Buat folder baru untuk menyimpan hasil crop dan klasifikasi
         existing_folders = [name for name in os.listdir(self.crop_folder) if os.path.isdir(os.path.join(self.crop_folder, name))]
         folder_index = len(existing_folders)
         folder_dir = os.path.join(self.crop_folder, str(folder_index))
-        crop_dir = os.path.join(folder_dir, "crop")
+        
+        # Buat subfolder untuk crop deteksi
+        crop_dir = os.path.join(folder_dir, "deteksi_crop")
         os.makedirs(crop_dir, exist_ok=True)
+        
+        # Buat subfolder untuk klasifikasi
         classify_dir = os.path.join(folder_dir, "klasifikasi")
         os.makedirs(classify_dir, exist_ok=True)
 
@@ -327,5 +332,5 @@ if __name__ == "__main__":
         class_index_path="class_indices.json"
     )
 
-    result = pipeline.process("images.jpg")
+    result = pipeline.process("acne.jpeg")
     print(json.dumps(result, indent=4))
