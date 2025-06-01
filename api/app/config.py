@@ -16,3 +16,13 @@ class Config:
     DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'Qwen2.5-3B-Instruct-AWQ')
     VLLM_API_URL = os.getenv('VLLM_API_URL', 'http://localhost:8080/v1')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    
+    # File storage paths
+    UPLOAD_DIR = os.getenv('UPLOAD_DIR', 'instance/uploads')
+    CROP_DIR = os.getenv('CROP_DIR', 'instance/crops')
+    RESULTS_DIR = os.getenv('RESULTS_DIR', 'instance/results')
+    
+    # ML models paths
+    DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/best.pt')
+    CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/model.tflite')
+    CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')
