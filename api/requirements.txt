@@ -1,5 +1,7 @@
 flask
-numpy
+tensorflow
+ultralytics 
+numpy==1.26.4
 pandas
 python-dotenv
 scikit-learn
@@ -7,6 +9,4 @@ scipy
 supabase
 google-generativeai
 flask_cors
-tensorflow[and-cuda]
-ultralytics 
-"numpy<2"
+
