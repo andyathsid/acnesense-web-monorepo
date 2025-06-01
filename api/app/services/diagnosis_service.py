@@ -4,9 +4,9 @@ import numpy as np
 import json
 import base64
 import time
-import tensorflow as tf
+from PIL import Image
+import tflite_runtime.interpreter as tflite
 from ultralytics import YOLO
-from tensorflow.keras.utils import load_img, img_to_array
 from flask import current_app
 
 # Constants
@@ -172,7 +172,7 @@ class DiagnosisClassificationService:
         return {int(v): k for k, v in class_indices.items()}
 
     def _load_model(self):
-        interpreter = tf.lite.Interpreter(model_path=self.model_path)
+        interpreter = tflite.Interpreter(model_path=self.model_path)
         interpreter.allocate_tensors()
         return interpreter
 
@@ -180,9 +180,11 @@ class DiagnosisClassificationService:
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
 
-        img = load_img(img_path, target_size=self.target_size)
-        img_array = img_to_array(img) / 255.0
-        img_array = np.expand_dims(img_array.astype(np.float32), axis=0)
+        # Load and preprocess image using PIL
+        with Image.open(img_path) as img:
+            img = img.resize(self.target_size)
+            img_array = np.array(img, dtype=np.float32) / 255.0
+            img_array = np.expand_dims(img_array, axis=0)
 
         self.interpreter.set_tensor(input_details[0]['index'], img_array)
         self.interpreter.invoke()

@@ -2,7 +2,7 @@ import time
 import google.generativeai as genai
 from flask import current_app
 import numpy as np
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 from ultralytics import YOLO
 
 def warm_up_model(model_name="gemini-2.5-flash", max_retries=3):
@@ -51,7 +51,7 @@ def warm_up_diagnosis_models():
         
         print("Warming up classification model...")
         # Load TFLite model
-        interpreter = tf.lite.Interpreter(model_path=classification_model_path)
+        interpreter = tflite.Interpreter(model_path=classification_model_path)
         interpreter.allocate_tensors()
         
         # Get input and output details
