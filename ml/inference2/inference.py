@@ -3,10 +3,10 @@ import cv2
 import numpy as np
 import json
 import tensorflow as tf
-from ultralytics import YOLO
 from tensorflow.keras.utils import load_img, img_to_array
 
-DETECT_CONFIDENCE = 0.65
+DETECT_CONFIDENCE = 0.30
+CLASSIFY_CONFIDENCE = 0.50
 ENLARGE_SCALE = 1.75
 CROP_SCALE_FACTOR = 4.5
 
@@ -25,6 +25,43 @@ def enlarge_bbox(x1, y1, x2, y2, scale, img_width, img_height):
     new_y2 = min(img_height, int(cy + new_h / 2))
 
     return new_x1, new_y1, new_x2, new_y2
+
+def non_max_suppression(boxes, scores, iou_threshold=0.5):
+    if len(boxes) == 0:
+        return []
+    
+    boxes = np.array(boxes)
+    scores = np.array(scores)
+    
+    indices = np.argsort(scores)[::-1]
+    
+    keep = []
+    while len(indices) > 0:
+        current = indices[0]
+        keep.append(current)
+        
+        if len(indices) == 1:
+            break
+            
+        current_box = boxes[current]
+        remaining_boxes = boxes[indices[1:]]
+        
+        x1 = np.maximum(current_box[0], remaining_boxes[:, 0])
+        y1 = np.maximum(current_box[1], remaining_boxes[:, 1])
+        x2 = np.minimum(current_box[2], remaining_boxes[:, 2])
+        y2 = np.minimum(current_box[3], remaining_boxes[:, 3])
+        
+        intersection = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+        
+        area_current = (current_box[2] - current_box[0]) * (current_box[3] - current_box[1])
+        area_remaining = (remaining_boxes[:, 2] - remaining_boxes[:, 0]) * (remaining_boxes[:, 3] - remaining_boxes[:, 1])
+        union = area_current + area_remaining - intersection
+        
+        iou = intersection / (union + 1e-6)
+        
+        indices = indices[1:][iou < iou_threshold]
+    
+    return [boxes[i] for i in keep], [scores[i] for i in keep]
 
 def annotate_image_with_predictions(img, boxes, predictions, save_path):
     annotated_img = img.copy()
@@ -46,12 +83,10 @@ def annotate_image_with_predictions(img, boxes, predictions, save_path):
             cv2.rectangle(annotated_img, (x1, y1), (x2, y2), color, 2)
 
             text = label["class"]
-            # Calculate text size and position
             (text_w, text_h), baseline = cv2.getTextSize(text, font, font_scale, font_thickness)
             text_x = x1
             text_y = y1 - 10 if y1 - 10 > text_h else y1 + text_h + 10
 
-            # Draw text background for better visibility
             cv2.rectangle(
                 annotated_img,
                 (text_x, text_y - text_h - baseline),
@@ -59,8 +94,6 @@ def annotate_image_with_predictions(img, boxes, predictions, save_path):
                 (0, 0, 0),
                 thickness=cv2.FILLED,
             )
-
-            # Put text over rectangle
             cv2.putText(
                 annotated_img, text, (text_x, text_y), font, font_scale, color, font_thickness, lineType=cv2.LINE_AA
             )
@@ -70,11 +103,10 @@ def annotate_image_with_predictions(img, boxes, predictions, save_path):
 def create_classification_image(crop_img, class_name, confidence, save_path):
     pad = 5
     crop_img_padded = cv2.copyMakeBorder(crop_img, pad, pad, pad, pad, borderType=cv2.BORDER_CONSTANT, value=[0, 0, 0])
-
     crop_h, crop_w = crop_img_padded.shape[:2]
     panel_w = int(crop_w * 1.4)
     panel_h = crop_h
-    
+
     if confidence < 0.5:
         base_color = (153, 153, 255)
     elif confidence < 0.75:
@@ -86,7 +118,8 @@ def create_classification_image(crop_img, class_name, confidence, save_path):
     panel = np.full((panel_h, panel_w, 3), base_color, dtype=np.uint8)
 
     border_thickness = 5
-    crop_bg[border_thickness:-border_thickness, border_thickness:-border_thickness] = crop_img_padded[border_thickness:-border_thickness, border_thickness:-border_thickness]
+    crop_bg[border_thickness:-border_thickness, border_thickness:-border_thickness] = \
+        crop_img_padded[border_thickness:-border_thickness, border_thickness:-border_thickness]
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 1.0
@@ -94,10 +127,8 @@ def create_classification_image(crop_img, class_name, confidence, save_path):
 
     text_class = f"Class: {class_name}"
     text_conf = f"Confidence: {confidence*100:.2f}%"
-
     (w_class, h_class), _ = cv2.getTextSize(text_class, font, font_scale, font_thickness)
     (w_conf, h_conf), _ = cv2.getTextSize(text_conf, font, font_scale, font_thickness)
-
     total_text_height = h_class + h_conf + 20
     y_start = (panel_h - total_text_height) // 2 + h_class
 
@@ -107,49 +138,93 @@ def create_classification_image(crop_img, class_name, confidence, save_path):
 
     cv2.putText(panel, text_class, (20 + shadow_offset, y_start + shadow_offset), font, font_scale, text_shadow, font_thickness + 1, lineType=cv2.LINE_AA)
     cv2.putText(panel, text_conf, (20 + shadow_offset, y_start + h_class + 20 + shadow_offset), font, font_scale, text_shadow, font_thickness + 1, lineType=cv2.LINE_AA)
-    
     cv2.putText(panel, text_class, (20, y_start), font, font_scale, text_color, font_thickness, lineType=cv2.LINE_AA)
     cv2.putText(panel, text_conf, (20, y_start + h_class + 20), font, font_scale, text_color, font_thickness, lineType=cv2.LINE_AA)
 
     if panel.shape[0] < crop_bg.shape[0]:
         diff = crop_bg.shape[0] - panel.shape[0]
-        top_pad = diff // 2
-        bottom_pad = diff - top_pad
-        panel = cv2.copyMakeBorder(panel, top_pad, bottom_pad, 0, 0, borderType=cv2.BORDER_CONSTANT, value=base_color)
+        panel = cv2.copyMakeBorder(panel, diff // 2, diff - diff // 2, 0, 0, cv2.BORDER_CONSTANT, value=base_color)
     elif panel.shape[0] > crop_bg.shape[0]:
         diff = panel.shape[0] - crop_bg.shape[0]
-        top_pad = diff // 2
-        bottom_pad = diff - top_pad
-        crop_bg = cv2.copyMakeBorder(crop_bg, top_pad, bottom_pad, 0, 0, borderType=cv2.BORDER_CONSTANT, value=base_color)
+        crop_bg = cv2.copyMakeBorder(crop_bg, diff // 2, diff - diff // 2, 0, 0, cv2.BORDER_CONSTANT, value=base_color)
 
     combined_img = np.hstack((crop_bg, panel))
-
     cv2.imwrite(save_path, combined_img, [cv2.IMWRITE_JPEG_QUALITY, 95])
-
 
 class JerawatDetectionService:
     def __init__(self, model_path):
-        self.model = YOLO(model_path)
+        self.model_path = model_path
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+
+        input_details = self.interpreter.get_input_details()
+        output_details = self.interpreter.get_output_details()
+
+        self.input_index = input_details[0]['index']
+        self.output_index = output_details[0]['index']
+        self.input_shape = input_details[0]['shape']
+        self.input_size = (self.input_shape[2], self.input_shape[1])  # width, height
+        
 
     def detect(self, image_path):
-        results = self.model.predict(
-            source=image_path,
-            conf=DETECT_CONFIDENCE,
-            save=False,
-            imgsz=640,
-            device='cpu'
-        )
         img = cv2.imread(image_path)
-        img_height, img_width = img.shape[:2]
+        if img is None:
+            raise ValueError(f"Could not load image from {image_path}")
+            
+        original_h, original_w = img.shape[:2]
+        print(f"Original image size: {original_w}x{original_h}")
 
+        resized_img = cv2.resize(img, self.input_size)
+        input_data = resized_img / 255.0
+        input_data = np.expand_dims(input_data.astype(np.float32), axis=0)
+
+        self.interpreter.set_tensor(self.input_index, input_data)
+        self.interpreter.invoke()
+        output_data = self.interpreter.get_tensor(self.output_index)
+
+        detections = output_data[0]
+        
         boxes = []
-        for box in results[0].boxes.xyxy.cpu().numpy():
-            x1, y1, x2, y2 = box[:4]
-            boxes.append((
-                int(x1), int(y1), int(x2), int(y2)
-            ))
+        scores = []
+        
+        detections = detections.T
+        
+        for detection in detections:
+            x_center, y_center, width, height, confidence = detection
+            
+            if confidence < DETECT_CONFIDENCE:
+                continue
+                
+            x_center_px = x_center * original_w
+            y_center_px = y_center * original_h
+            width_px = width * original_w
+            height_px = height * original_h
+            
+            x1 = int(x_center_px - width_px / 2)
+            y1 = int(y_center_px - height_px / 2)
+            x2 = int(x_center_px + width_px / 2)
+            y2 = int(y_center_px + height_px / 2)
+            
+            x1 = max(0, min(x1, original_w))
+            y1 = max(0, min(y1, original_h))
+            x2 = max(0, min(x2, original_w))
+            y2 = max(0, min(y2, original_h))
+            
+            if x2 <= x1 or y2 <= y1:
+                continue
+                
+            boxes.append((x1, y1, x2, y2))
+            scores.append(confidence)
+
+        print(f"Found {len(boxes)} detections before NMS")
+        
+        # Apply Non-Maximum Suppression
+        if boxes:
+            boxes, scores = non_max_suppression(boxes, scores, iou_threshold=0.5)
+            print(f"Found {len(boxes)} detections after NMS")
 
         return boxes, img
+
 
 class JerawatClassificationService:
     def __init__(self, model_path, class_index_path):
@@ -207,26 +282,37 @@ class JerawatPipeline:
         os.makedirs("hasil_klasifikasi", exist_ok=True)
 
         for i, (x1, y1, x2, y2) in enumerate(detected_boxes):
-            x1, y1, x2, y2 = enlarge_bbox(x1, y1, x2, y2, ENLARGE_SCALE, img_width, img_height)
+            # Enlarge bounding box
+            x1_enlarged, y1_enlarged, x2_enlarged, y2_enlarged = enlarge_bbox(
+                x1, y1, x2, y2, ENLARGE_SCALE, img_width, img_height
+            )
 
-            crop = img[y1:y2, x1:x2]
+            # Crop the region
+            crop = img[y1_enlarged:y2_enlarged, x1_enlarged:x2_enlarged]
+            
+            # Resize crop for better visibility
             resized_crop = cv2.resize(crop, None, fx=CROP_SCALE_FACTOR, fy=CROP_SCALE_FACTOR, interpolation=cv2.INTER_CUBIC)
             crop_path = f"{self.crop_folder}/crop_{i}.jpg"
             cv2.imwrite(crop_path, resized_crop)
 
+            # Classify the cropped region
             prediction = self.classifier.predict(crop_path)
-            results[os.path.basename(crop_path)] = prediction
+            
+            # Only include results with sufficient classification confidence
+            if prediction["confidence"] >= CLASSIFY_CONFIDENCE:
+                results[os.path.basename(crop_path)] = prediction
 
-            save_path = f"hasil_klasifikasi/classified_{i}.jpg"
-            create_classification_image(resized_crop, prediction["class"], prediction["confidence"], save_path)
+                # Create classification visualization
+                save_path = f"hasil_klasifikasi/crop_{i}.jpg"
+                create_classification_image(resized_crop, prediction["class"], prediction["confidence"], save_path)
 
+        # Create annotated image
         annotate_image_with_predictions(img, detected_boxes, results, "hasil_klasifikasi/annotated_image.jpg")
-
         return results
 
 if __name__ == "__main__":
     pipeline = JerawatPipeline(
-        deteksi_model_path="model/deteksi/best.pt",
+        deteksi_model_path="model/deteksi/best_float32.tflite",  # path TFLite baru
         klasifikasi_model_path="model/klasifikasi/model.tflite",
         class_index_path="class_indices.json"
     )
