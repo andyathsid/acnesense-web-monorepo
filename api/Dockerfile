@@ -2,12 +2,22 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# RUN apt-get update && apt-get install -y \
+#     libgl1-mesa-glx \
+#     libglib2.0-0 \
+#     && rm -rf /var/lib/apt/lists/*
+
+# Install OpenCV headless first
+RUN pip install --no-cache-dir opencv-python-headless
+
+# Now install ultralytics without deps
+RUN pip install --no-cache-dir ultralytics --no-deps
+
 # Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Install gunicorn
-RUN pip install gunicorn
+# Install other requirements after
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .

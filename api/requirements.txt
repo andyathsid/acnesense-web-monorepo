@@ -1,3 +1,7 @@
+numpy==1.26.4
+torch
+torchvision
+tflite-runtime    
 flask
 tensorflow
 ultralytics 
@@ -9,4 +13,6 @@ scipy
 supabase
 google-generativeai
 flask_cors
+pillow
+gunicorn
 
