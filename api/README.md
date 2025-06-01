@@ -177,3 +177,69 @@ This API uses a Retrieval Augmented Generation (RAG) system that:
 The knowledge base consists of:
 - acne_types.csv: Information about different acne types
 - faqs.csv: Frequently asked questions about acne
+
+
+# Setting up Ngrok with Screen and Custom Domain
+
+Here's how to set up ngrok outside your Docker container with screen persistence and your custom domain:
+
+## 1. Install Dependencies
+
+```bash
+# Install screen if not already installed
+sudo apt-get update && sudo apt-get install -y screen
+
+# Install ngrok if not already installed
+# Download ngrok
+curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+sudo apt update && sudo apt install ngrok
+```
+
+## 2. Configure Ngrok with Custom Domain
+
+```bash
+# Authenticate with your ngrok account
+ngrok config add-authtoken YOUR_AUTH_TOKEN
+
+# Add your custom domain to ngrok config
+# Edit ~/.ngrok2/ngrok.yml or create it if it doesn't exist
+echo "
+authtoken: YOUR_AUTH_TOKEN
+tunnels:
+  acne-sense-api:
+    proto: http
+    addr: localhost:${FLASK_PORT}
+    hostname: your-custom-domain.ngrok.io
+" > ~/.ngrok2/ngrok.yml
+```
+
+## 3. Create Persistent Screen Session
+
+```bash
+# Create and attach to a new screen session named "ngrok"
+screen -S ngrok
+
+# Inside the screen session, start ngrok with your custom domain
+# (Replace ${FLASK_PORT} with the actual port number if not using the variable)
+ngrok http --domain=your-custom-domain.ngrok.io localhost:${FLASK_PORT}
+
+# Detach from screen by pressing: Ctrl+A then D
+```
+
+## 4. Screen Management Commands
+
+```bash
+# List running screen sessions
+screen -ls
+
+# Reattach to the ngrok screen session
+screen -r ngrok
+
+# Kill the screen session when needed
+screen -X -S ngrok quit
+```
+
+Remember to replace `YOUR_AUTH_TOKEN` and `your-custom-domain.ngrok.io` with your actual ngrok authentication token and custom domain.
+
+Similar code found with 2 license types

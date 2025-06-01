@@ -3,9 +3,6 @@ torch
 torchvision
 tflite-runtime    
 flask
-tensorflow
-ultralytics 
-numpy==1.26.4
 pandas
 python-dotenv
 scikit-learn
