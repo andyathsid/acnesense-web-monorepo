@@ -1,4 +1,4 @@
-name: acne-sense-api
+name: acne-sense-gemini
 
 services:
   acne-sense-api:
@@ -12,6 +12,7 @@ services:
       - "${FLASK_PORT}:${FLASK_PORT}"
     volumes:
       - ./data:/app/data
+      - ./models:/app/models 
     env_file:
       - .env
     networks:

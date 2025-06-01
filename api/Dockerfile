@@ -28,7 +28,7 @@ ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
 
 # Accept build argument for port
-ARG FLASK_PORT=8000
+ARG FLASK_PORT=5000
 ENV FLASK_PORT=${FLASK_PORT}
 
 # Expose port from environment
