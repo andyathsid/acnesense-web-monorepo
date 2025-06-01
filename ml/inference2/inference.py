@@ -265,7 +265,7 @@ class JerawatClassificationService:
         }
 
 class JerawatPipeline:
-    def __init__(self, deteksi_model_path, klasifikasi_model_path, class_index_path, crop_folder="hasil_crop"):
+    def __init__(self, deteksi_model_path, klasifikasi_model_path, class_index_path, crop_folder="results"):
         self.detector = JerawatDetectionService(deteksi_model_path)
         self.classifier = JerawatClassificationService(klasifikasi_model_path, class_index_path)
         self.crop_folder = crop_folder
@@ -275,11 +275,21 @@ class JerawatPipeline:
         detected_boxes, img = self.detector.detect(image_path)
         img_height, img_width = img.shape[:2]
 
+        existing_folders = [name for name in os.listdir(self.crop_folder) if os.path.isdir(os.path.join(self.crop_folder, name))]
+        folder_index = len(existing_folders)
+        folder_dir = os.path.join(self.crop_folder, str(folder_index))
+        crop_dir = os.path.join(folder_dir, "crop")
+        os.makedirs(crop_dir, exist_ok=True)
+        classify_dir = os.path.join(folder_dir, "klasifikasi")
+        os.makedirs(classify_dir, exist_ok=True)
+
+        # Buat folder baru
+        os.makedirs(folder_dir, exist_ok=True)
         if not detected_boxes:
             return {"message": "jerawat tidak ditemukan"}
 
         results = {}
-        os.makedirs("hasil_klasifikasi", exist_ok=True)
+        # os.makedirs("hasil_klasifikasi", exist_ok=True)
 
         for i, (x1, y1, x2, y2) in enumerate(detected_boxes):
             # Enlarge bounding box
@@ -292,7 +302,7 @@ class JerawatPipeline:
             
             # Resize crop for better visibility
             resized_crop = cv2.resize(crop, None, fx=CROP_SCALE_FACTOR, fy=CROP_SCALE_FACTOR, interpolation=cv2.INTER_CUBIC)
-            crop_path = f"{self.crop_folder}/crop_{i}.jpg"
+            crop_path = f"{crop_dir}/crop_{i}.jpg"
             cv2.imwrite(crop_path, resized_crop)
 
             # Classify the cropped region
@@ -303,11 +313,11 @@ class JerawatPipeline:
                 results[os.path.basename(crop_path)] = prediction
 
                 # Create classification visualization
-                save_path = f"hasil_klasifikasi/crop_{i}.jpg"
+                save_path = f"{classify_dir}/crop_{i}.jpg"
                 create_classification_image(resized_crop, prediction["class"], prediction["confidence"], save_path)
 
         # Create annotated image
-        annotate_image_with_predictions(img, detected_boxes, results, "hasil_klasifikasi/annotated_image.jpg")
+        annotate_image_with_predictions(img, detected_boxes, results, f"{classify_dir}/annotated_image.jpg")
         return results
 
 if __name__ == "__main__":
