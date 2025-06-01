@@ -1,5 +1,6 @@
 import os
 import cv2
+from datetime import datetime
 import numpy as np
 import json
 import tensorflow as tf
@@ -277,7 +278,8 @@ class JerawatPipeline:
 
         # Buat folder baru untuk menyimpan hasil crop dan klasifikasi
         existing_folders = [name for name in os.listdir(self.crop_folder) if os.path.isdir(os.path.join(self.crop_folder, name))]
-        folder_index = len(existing_folders)
+        current_time = datetime.now().strftime("%d-%m-%Y")
+        folder_index = f"{len(existing_folders)}_({current_time})"
         folder_dir = os.path.join(self.crop_folder, str(folder_index))
         
         # Buat subfolder untuk crop deteksi
@@ -332,5 +334,5 @@ if __name__ == "__main__":
         class_index_path="class_indices.json"
     )
 
-    result = pipeline.process("acne.jpeg")
+    result = pipeline.process("images.jpg")
     print(json.dumps(result, indent=4))
