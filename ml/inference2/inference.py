@@ -334,5 +334,5 @@ if __name__ == "__main__":
         class_index_path="class_indices.json"
     )
 
-    result = pipeline.process("images.jpg")
+    result = pipeline.process("acne-types.jpg")
     print(json.dumps(result, indent=4))
