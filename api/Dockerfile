@@ -7,7 +7,7 @@ WORKDIR /app
 #     libglib2.0-0 \
 #     && rm -rf /var/lib/apt/lists/*
 
-# Install OpenCV headless first
+# Then install OpenCV headless first
 RUN pip install --no-cache-dir opencv-python-headless
 
 # Now install ultralytics without deps
