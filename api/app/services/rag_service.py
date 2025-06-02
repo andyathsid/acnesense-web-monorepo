@@ -160,15 +160,19 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     return context
 
 def call_llm(prompt: str, model: str = None) -> str:
-    """Get response from vLLM using OpenAI client"""
+    """Get response from Vertex AI using OpenAI client"""
     try:
         # Use the model from parameter or default from config
         model_name = model or current_app.config['DEFAULT_MODEL']
+        vllm_url = current_app.config['VLLM_API_URL']
+        api_key = current_app.config.get('VERTEX_AI_API_KEY')
         
-        # Initialize OpenAI client for vLLM
+        print(f"Connecting to Vertex AI at: {vllm_url}")
+        
+        # Initialize OpenAI client for Vertex AI
         client = OpenAI(
-            api_key="dummy-key",  # vLLM doesn't require real API key
-            base_url=current_app.config['VLLM_API_URL']
+            api_key=api_key,  
+            base_url=vllm_url 
         )
         
         # Create chat completion
@@ -185,7 +189,7 @@ def call_llm(prompt: str, model: str = None) -> str:
         return response.choices[0].message.content
         
     except Exception as e:
-        return f"Error connecting to vLLM: {str(e)}"
+        return f"Error connecting to Vertex AI: {str(e)}"
 
 def answer_question(query: str, model: str = None) -> str:
     """Answer a question using RAG"""

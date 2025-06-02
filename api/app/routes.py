@@ -3,6 +3,7 @@ import time
 import traceback
 import os
 import shutil
+import json  
 from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify, current_app
 
@@ -166,6 +167,116 @@ def image_diagnosis():
                 
             except Exception as cleanup_error:
                 # Log cleanup error but don't fail the request
+                print(f"Error during file cleanup: {str(cleanup_error)}")
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route("/combined-diagnosis", methods=["POST"])
+def combined_diagnosis():
+    """Process an uploaded image and provide personalized recommendations in one step"""
+    try:
+        # Check if image file is in request
+        if 'image' not in request.files:
+            return jsonify({"error": "No image provided"}), 400
+            
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        
+        # Parse user info from form data
+        user_info = {}
+        if 'user_info' in request.form:
+            try:
+                user_info = json.loads(request.form['user_info'])
+            except:
+                return jsonify({"error": "Invalid user_info JSON format"}), 400
+        
+        # Get model name if provided, otherwise use default
+        model = current_app.config['DEFAULT_MODEL']
+        if 'model' in request.form:
+            model = request.form['model']
+            
+        # Generate unique filename to prevent collisions
+        filename = f"{str(uuid.uuid4())}.jpg"
+        upload_path = os.path.join(current_app.config['UPLOAD_DIR'], filename)
+        
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+        
+        # Save the uploaded file
+        file.save(upload_path)
+        
+        try:
+            # Initialize and run the diagnosis pipeline
+            pipeline = DiagnosisPipeline(
+                detection_model_path=current_app.config.get('DETECTION_MODEL_PATH'),
+                classification_model_path=current_app.config.get('CLASSIFICATION_MODEL_PATH'),
+                class_index_path=current_app.config.get('CLASS_INDEX_PATH')
+            )
+            
+            # Process the image
+            image_results = pipeline.process(upload_path)
+            
+            # Extract acne types from classification results
+            acne_types = []
+            for result in image_results.get("classification_results", []):
+                if result.get("class") not in acne_types:
+                    acne_types.append(result.get("class"))
+            
+            # If no acne types detected, return early with just image results but restructured
+            if not acne_types:
+                # Restructure the response (move metadata fields up)
+                metadata = image_results.pop("metadata", {})
+                restructured_results = {**image_results, **metadata}
+                restructured_results["message"] = "No acne detected to generate recommendations"
+                return jsonify(restructured_results)
+            
+            # Generate recommendations based on detected acne types
+            recommendation = process_diagnosis(acne_types, user_info, model=model)
+            
+            # Restructure the response (move metadata fields up)
+            metadata = image_results.pop("metadata", {})
+            
+            # Combine both results into a single response
+            combined_results = {
+                **image_results,
+                **metadata,
+                "acne_types": acne_types,
+                "recommendation": recommendation,
+                "format": "markdown"
+            }
+            
+            return jsonify(combined_results)
+            
+        finally:
+            # Clean up files after response is sent
+            try:
+                # Remove uploaded image
+                if os.path.exists(upload_path):
+                    os.remove(upload_path)
+                    print(f"Cleaned up uploaded image: {upload_path}")
+                
+                # Clean up crops and result images
+                crop_dir = current_app.config.get('CROP_DIR', 'instance/crops')
+                results_dir = current_app.config.get('RESULTS_DIR', 'instance/results')
+                
+                # Clean crop directory
+                for crop_file in os.listdir(crop_dir):
+                    try:
+                        os.remove(os.path.join(crop_dir, crop_file))
+                    except Exception as e:
+                        print(f"Failed to remove crop file {crop_file}: {str(e)}")
+                
+                # Clean results directory
+                for result_file in os.listdir(results_dir):
+                    try:
+                        os.remove(os.path.join(results_dir, result_file))
+                    except Exception as e:
+                        print(f"Failed to remove result file {result_file}: {str(e)}")
+            
+            except Exception as cleanup_error:
                 print(f"Error during file cleanup: {str(cleanup_error)}")
         
     except Exception as e:
