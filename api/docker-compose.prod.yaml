@@ -16,10 +16,11 @@ services:
     environment:
       - FLASK_APP=run.py
       - FLASK_DEBUG=0
-      - VLLM_API_URL=${VLLM_API_UR}  
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
     volumes:
       - ./data:/app/data
       - ./models:/app/models
+      - ./service-account-key.json:/app/service-account-key.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${FLASK_PORT}/health"]
       interval: 30s
