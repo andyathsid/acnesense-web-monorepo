@@ -129,3 +129,5 @@ dmypy.json
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+service-account-key.json
