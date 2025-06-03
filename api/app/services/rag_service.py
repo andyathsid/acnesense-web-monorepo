@@ -1,10 +1,10 @@
 import json
-import requests
 import time
 import re
 from typing import Dict, List, Any
 from flask import current_app
 from openai import OpenAI
+from app.utils.auth_utils import get_access_token
 
 # Templates
 DIAGNOSIS_TEMPLATE = """
@@ -159,36 +159,49 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     
     return context
 
+from app.utils.auth_utils import get_access_token
+
 def call_llm(prompt: str, model: str = None) -> str:
     """Get response from Vertex AI using OpenAI client"""
     try:
         # Use the model from parameter or default from config
         model_name = model or current_app.config['DEFAULT_MODEL']
-        vllm_url = current_app.config['VLLM_API_URL']
-        api_key = current_app.config.get('VERTEX_AI_API_KEY')
+        vllm_api_url = current_app.config['VLLM_API_URL']
         
-        print(f"Connecting to Vertex AI at: {vllm_url}")
+        # Get cached or fresh access token
+        access_token = get_access_token()
+        
+        # Base URL should not have ":predict" suffix for OpenAI compatibility
+        base_url = vllm_api_url.replace(":predict", "")
         
         # Initialize OpenAI client for Vertex AI
         client = OpenAI(
-            api_key=api_key,  
-            base_url=vllm_url 
+            api_key=access_token,
+            base_url=base_url,
+            timeout=current_app.config.get('LLM_TIMEOUT', 60)
         )
         
-        # Create chat completion
+        # Create chat completion with improved parameters
         response = client.chat.completions.create(
             model=model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000,
-            temperature=0.7
+            max_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
+            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+            top_p=current_app.config.get('LLM_TOP_P', 0.8),
+            presence_penalty=1.5,
+            extra_body={
+                "top_k": 20, 
+                "chat_template_kwargs": {"enable_thinking": False},
+            },
         )
         
         return response.choices[0].message.content
         
     except Exception as e:
+        current_app.logger.error(f"Error calling LLM: {str(e)}")
         return f"Error connecting to Vertex AI: {str(e)}"
 
 def answer_question(query: str, model: str = None) -> str:

@@ -6,7 +6,6 @@ import base64
 import time
 from PIL import Image
 import tflite_runtime.interpreter as tflite
-from ultralytics import YOLO
 from flask import current_app
 
 DETECT_CONFIDENCE = 0.30

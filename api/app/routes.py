@@ -175,38 +175,70 @@ def image_diagnosis():
     
 @api_bp.route("/combined-diagnosis", methods=["POST"])
 def combined_diagnosis():
-    """Process an uploaded image and provide personalized recommendations in one step"""
+    """Process an uploaded image or base64 image data and provide personalized recommendations in one step"""
     try:
-        # Check if image file is in request
-        if 'image' not in request.files:
-            return jsonify({"error": "No image provided"}), 400
-            
-        file = request.files['image']
-        if file.filename == '':
-            return jsonify({"error": "No selected file"}), 400
-        
-        # Parse user info from form data
+        upload_path = None
         user_info = {}
-        if 'user_info' in request.form:
-            try:
-                user_info = json.loads(request.form['user_info'])
-            except:
-                return jsonify({"error": "Invalid user_info JSON format"}), 400
-        
-        # Get model name if provided, otherwise use default
         model = current_app.config['DEFAULT_MODEL']
-        if 'model' in request.form:
-            model = request.form['model']
+        
+        # Check if request is JSON (for base64) or form (for file upload)
+        if request.is_json:
+            # Handle base64 encoded image
+            data = request.json
+            base64_image = data.get('image')
+            user_info = data.get('user_info', {})
+            model = data.get('model', current_app.config['DEFAULT_MODEL'])
             
-        # Generate unique filename to prevent collisions
-        filename = f"{str(uuid.uuid4())}.jpg"
-        upload_path = os.path.join(current_app.config['UPLOAD_DIR'], filename)
-        
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(upload_path), exist_ok=True)
-        
-        # Save the uploaded file
-        file.save(upload_path)
+            if not base64_image:
+                return jsonify({"error": "No image data provided"}), 400
+                
+            # Generate unique filename
+            filename = f"{str(uuid.uuid4())}.jpg"
+            upload_path = os.path.join(current_app.config['UPLOAD_DIR'], filename)
+            
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+            
+            # Decode and save base64 image
+            try:
+                import base64
+                # Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
+                if ',' in base64_image:
+                    base64_image = base64_image.split(',', 1)[1]
+                
+                with open(upload_path, "wb") as f:
+                    f.write(base64.b64decode(base64_image))
+            except Exception as decode_error:
+                return jsonify({"error": f"Invalid base64 image data: {str(decode_error)}"}), 400
+        else:
+            # Handle file upload (existing functionality)
+            if 'image' not in request.files:
+                return jsonify({"error": "No image provided"}), 400
+                
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({"error": "No selected file"}), 400
+            
+            # Parse user info from form data
+            if 'user_info' in request.form:
+                try:
+                    user_info = json.loads(request.form['user_info'])
+                except:
+                    return jsonify({"error": "Invalid user_info JSON format"}), 400
+            
+            # Get model name if provided, otherwise use default
+            if 'model' in request.form:
+                model = request.form['model']
+                
+            # Generate unique filename to prevent collisions
+            filename = f"{str(uuid.uuid4())}.jpg"
+            upload_path = os.path.join(current_app.config['UPLOAD_DIR'], filename)
+            
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+            
+            # Save the uploaded file
+            file.save(upload_path)
         
         try:
             # Initialize and run the diagnosis pipeline

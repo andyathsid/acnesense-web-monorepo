@@ -12,13 +12,24 @@ class Config:
     ACNE_TYPES_PATH = os.getenv('ACNE_TYPES_PATH', 'data/knowledge-base/acne_types.csv')
     FAQS_PATH = os.getenv('FAQS_PATH', 'data/knowledge-base/faqs.csv')
     
-    model_name = os.getenv('DEFAULT_MODEL', 'Qwen2.5-3B-Instruct-AWQ')
-    if not model_name.startswith('/models/'):
-        model_name = f"/models/{model_name}"
+    # LLM configuration
+    model_name = os.getenv('DEFAULT_MODEL', 'default') 
     DEFAULT_MODEL = model_name
-    VLLM_API_URL = os.getenv('VLLM_API_URL', 'http://acne-sense-vllm:8080/v1')
     
-    VERTEX_AI_API_KEY = os.getenv('VERTEX_AI_API_KEY', '')
+    # Extract project and endpoint IDs from environment variables
+    PROJECT_ID = os.getenv('PROJECT_ID', '143761779858')
+    ENDPOINT_ID = os.getenv('ENDPOINT_ID', '2946528434718769152')
+    REGION = os.getenv('REGION', 'asia-southeast1')
+    
+    # Build the Vertex AI URL
+    VLLM_API_URL = os.getenv('VLLM_API_URL', 
+                             f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/{ENDPOINT_ID}")
+    
+    # Additional LLM settings
+    LLM_MAX_TOKENS = int(os.getenv('LLM_MAX_TOKENS', '2048'))
+    LLM_TEMPERATURE = float(os.getenv('LLM_TEMPERATURE', '0.7'))
+    LLM_TOP_P = float(os.getenv('LLM_TOP_P', '0.95'))
+    LLM_TIMEOUT = int(os.getenv('LLM_TIMEOUT', '60'))
     
     # File storage paths
     UPLOAD_DIR = os.getenv('UPLOAD_DIR', 'instance/uploads')
@@ -29,3 +40,5 @@ class Config:
     DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/yolo_v1.tflite')
     CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/cnn_v1.tflite')
     CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')
+    
+    GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service-account-key.json')

@@ -7,8 +7,10 @@ python-dotenv
 scikit-learn
 scipy
 supabase
-vllm
+openai
 flask_cors
 pillow
 gunicorn
-
+google-auth
+requests
+google-auth-oauthlib

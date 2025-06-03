@@ -1,5 +1,3 @@
-import time
-import google.generativeai as genai
 from flask import current_app
 import numpy as np
 import tflite_runtime.interpreter as tflite
