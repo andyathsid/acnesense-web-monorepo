@@ -1,7 +1,5 @@
 numpy==1.26.4
 pyyaml
-torch
-torchvision
 tflite-runtime    
 flask
 pandas
@@ -13,5 +11,6 @@ google-generativeai
 flask_cors
 pillow
 gunicorn
-googletrans
+deep_translator
+langdetect
 

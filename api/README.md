@@ -66,11 +66,11 @@ Ask a question about acne and get an answer in a specific language.
 ```bash
 curl -X POST http://localhost:8000/question \
   -H "Content-Type: application/json" \
-  -d '{
+  -d "{
     "question": "Quels sont les symptômes de l'acné kystique?",
     "target_language": "fr",
     "translation_method": "google"
-  }'
+  }"
 ```
 
 **Response:**

@@ -161,11 +161,15 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     
     return context
 
-def call_llm(prompt: str, model: str = "gemini-2.5-flash") -> str:
+def call_llm(prompt: str, model: str = None) -> str:
     """Get response from Google Gemini model"""
     try:
         # Configure the Gemini API
         genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
+        
+        # Use the model from config if not specified
+        if model is None:
+            model = current_app.config['DEFAULT_MODEL']
         
         # Create a Gemini model instance
         generation_config = {
@@ -183,8 +187,12 @@ def call_llm(prompt: str, model: str = "gemini-2.5-flash") -> str:
     except Exception as e:
         return f"Error connecting to Gemini: {str(e)}"
 
-def answer_question(query: str, model: str = "gemini-2.5-flash") -> str:
+def answer_question(query: str, model: str = None) -> str:
     """Answer a question using RAG"""
+    # Use the model from config if not specified
+    if model is None:
+        model = current_app.config['DEFAULT_MODEL']
+        
     search_results = search(query, num_results=5)
     context = build_context_from_documents(search_results)
     
@@ -196,8 +204,12 @@ def answer_question(query: str, model: str = "gemini-2.5-flash") -> str:
     answer = call_llm(prompt, model)
     return answer
 
-def evaluate_relevance(question: str, answer: str, model: str = "gemini-2.5-flash") -> Dict[str, str]:
+def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[str, str]:
     """Evaluate the relevance of the answer to the question"""
+    # Use the model from config if not specified
+    if model is None:
+        model = current_app.config['DEFAULT_MODEL']
+        
     prompt = EVALUATION_TEMPLATE.format(
         question=question,
         answer=answer
@@ -217,8 +229,12 @@ def evaluate_relevance(question: str, answer: str, model: str = "gemini-2.5-flas
     except json.JSONDecodeError:
         return {"Relevance": "UNKNOWN", "Explanation": "Failed to parse evaluation"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = "gemini-2.5-flash") -> str:
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None) -> str:
     """Process CV diagnosis results and provide recommendations"""
+    # Use the model from config if not specified
+    if model is None:
+        model = current_app.config['DEFAULT_MODEL']
+        
     patient_profile = f"""
     Age: {user_info.get('age', 'Unknown')}
     Skin Type: {user_info.get('skin_type', 'Unknown')}
@@ -261,31 +277,31 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
     
     return response
 
-def rag(query: str, model: str = "gemini-2.5-flash") -> Dict[str, Any]:
-    """Main RAG function to process a user query, now with relevance evaluation"""
-    t0 = time.time()
+# def rag(query: str, model: str = "gemini-2.0-flash") -> Dict[str, Any]:
+#     """Main RAG function to process a user query, now with relevance evaluation"""
+#     t0 = time.time()
     
-    answer = answer_question(query, model=model)
+#     answer = answer_question(query, model=model)
     
-    # Evaluate the relevance of the answer
-    relevance_result = evaluate_relevance(query, answer, model)
+#     # Evaluate the relevance of the answer
+#     relevance_result = evaluate_relevance(query, answer, model)
     
-    t1 = time.time()
-    took = t1 - t0
+#     t1 = time.time()
+#     took = t1 - t0
 
-    result = {
-        "answer": answer,
-        "model_used": model,
-        "response_time": took,
-        "relevance": relevance_result.get("Relevance", "UNKNOWN"),
-        "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
-    }
+#     result = {
+#         "answer": answer,
+#         "model_used": model,
+#         "response_time": took,
+#         "relevance": relevance_result.get("Relevance", "UNKNOWN"),
+#         "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
+#     }
     
-    return result
+#     return result
 
-def multilingual_rag(query: str, target_language: str = "en", 
+def rag(query: str, target_language: str = "en", 
                     translation_method: str = "google", 
-                    model: str = "gemini-2.5-flash") -> Dict[str, Any]:
+                    model: str = None) -> Dict[str, Any]:
     """
     Multilingual RAG function to handle queries in any language
     
@@ -293,11 +309,15 @@ def multilingual_rag(query: str, target_language: str = "en",
         query: User query in any language
         target_language: Language to return answer in (default: "en")
         translation_method: Translation method ("google", "llm", "both")
-        model: LLM model to use
+        model: LLM model to use (default: from configuration)
         
     Returns:
         Dictionary with answer and metadata
     """
+    # Use the model from config if not specified
+    if model is None:
+        model = current_app.config['DEFAULT_MODEL']
+        
     t0 = time.time()
     
     # Initialize translation service

@@ -10,9 +10,6 @@ WORKDIR /app
 # Install OpenCV headless first
 RUN pip install --no-cache-dir opencv-python-headless
 
-# Now install ultralytics without deps
-RUN pip install --no-cache-dir ultralytics --no-deps
-
 # Copy requirements first for better caching
 COPY requirements.txt .
 

@@ -24,7 +24,7 @@ def handle_question():
         data = request.json
         question = data.get("question", "")
         model = data.get("model", current_app.config['DEFAULT_MODEL'])
-        
+        print(f"Received question: {question} with model: {model}")
         # New parameters for multilingual support
         target_language = data.get("target_language", "en")
         translation_method = data.get("translation_method", "google")
@@ -37,7 +37,7 @@ def handle_question():
         
         # Use multilingual RAG if language parameters are specified
         if target_language != "en" or translation_method != "google":
-            answer_data = multilingual_rag(
+            answer_data = rag(
                 query=question,
                 target_language=target_language,
                 translation_method=translation_method,

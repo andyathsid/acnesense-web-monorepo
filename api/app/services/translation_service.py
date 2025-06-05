@@ -1,30 +1,32 @@
 import json
 from typing import Dict, Any, Optional
 from flask import current_app
-from googletrans import Translator
+from deep_translator import GoogleTranslator
+from deep_translator.exceptions import LanguageNotSupportedException
+from langdetect import detect 
 import google.generativeai as genai
 
 class TranslationService:
     """Service to handle language detection and translation"""
-
+    
     @staticmethod
     def detect_language(text: str) -> str:
-        """Detect language of input text using Google Translate"""
         try:
-            translator = Translator()
-            detection = translator.detect(text)
-            return detection.lang
+            # Use langdetect library instead
+            detected_lang = detect(text)
+            return detected_lang
         except Exception as e:
             print(f"Language detection error: {str(e)}")
-            return "en"  # Default to English on error
-
+            return "en"
+            
     @staticmethod
     def translate_with_google(text: str, target_language: str = 'en', source_language: Optional[str] = None) -> str:
         """Translate text using Google Translate"""
         try:
-            translator = Translator()
-            result = translator.translate(text, dest=target_language, src=source_language)
-            return result.text
+            # Use deep_translator's GoogleTranslator
+            translator = GoogleTranslator(source=source_language or 'auto', target=target_language)
+            result = translator.translate(text)
+            return result
         except Exception as e:
             print(f"Google translation error: {str(e)}")
             return text  # Return original text on error
