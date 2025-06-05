@@ -2,9 +2,10 @@ import json
 import requests
 import time
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from flask import current_app
 import google.generativeai as genai
+from app.services.translation_service import TranslationService
 
 # Templates
 DIAGNOSIS_TEMPLATE = """
@@ -279,5 +280,84 @@ def rag(query: str, model: str = "gemini-2.5-flash") -> Dict[str, Any]:
         "relevance": relevance_result.get("Relevance", "UNKNOWN"),
         "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
     }
+    
+    return result
+
+def multilingual_rag(query: str, target_language: str = "en", 
+                    translation_method: str = "google", 
+                    model: str = "gemini-2.5-flash") -> Dict[str, Any]:
+    """
+    Multilingual RAG function to handle queries in any language
+    
+    Args:
+        query: User query in any language
+        target_language: Language to return answer in (default: "en")
+        translation_method: Translation method ("google", "llm", "both")
+        model: LLM model to use
+        
+    Returns:
+        Dictionary with answer and metadata
+    """
+    t0 = time.time()
+    
+    # Initialize translation service
+    translation_svc = TranslationService()
+    
+    # Step 1: Detect language and translate query to English if needed
+    source_language = translation_svc.detect_language(query)
+    original_query = query
+    
+    # Translate query to English for processing if it's not already in English
+    if source_language != "en":
+        query_translation = translation_svc.translate(
+            text=query,
+            target_language="en",
+            source_language=source_language,
+            method=translation_method,
+            model=model
+        )
+        query = query_translation["translated_text"]
+    
+    # Step 2: Process the query with English RAG
+    answer_in_english = answer_question(query, model=model)
+    
+    # Step 3: Translate answer back to source language if needed
+    final_answer = answer_in_english
+    if target_language != "en":
+        answer_translation = translation_svc.translate(
+            text=answer_in_english,
+            target_language=target_language,
+            source_language="en",
+            method=translation_method,
+            model=model
+        )
+        final_answer = answer_translation["translated_text"]
+    
+    # Step 4: Evaluate relevance on English content
+    relevance_result = evaluate_relevance(
+        question=query if source_language == "en" else original_query,
+        answer=answer_in_english,
+        model=model
+    )
+    
+    # Calculate timing
+    t1 = time.time()
+    took = t1 - t0
+
+    # Prepare result
+    result = {
+        "answer": final_answer,
+        "model_used": model,
+        "response_time": took,
+        "original_language": source_language,
+        "target_language": target_language,
+        "translation_method": translation_method,
+        "relevance": relevance_result.get("Relevance", "UNKNOWN"),
+        "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
+    }
+    
+    # Add English answer for debugging if translation was performed
+    if source_language != "en" or target_language != "en":
+        result["answer_in_english"] = answer_in_english
     
     return result

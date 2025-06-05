@@ -13,4 +13,5 @@ google-generativeai
 flask_cors
 pillow
 gunicorn
+googletrans
 
