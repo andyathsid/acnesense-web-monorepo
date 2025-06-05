@@ -6,11 +6,10 @@ import base64
 import time
 from PIL import Image
 import tflite_runtime.interpreter as tflite
-from ultralytics import YOLO
 from flask import current_app
 
-# Constants
-DETECT_CONFIDENCE = 0.65
+DETECT_CONFIDENCE = 0.30
+CLASSIFY_CONFIDENCE = 0.50
 ENLARGE_SCALE = 1.75
 CROP_SCALE_FACTOR = 4.5
 
@@ -29,6 +28,43 @@ def enlarge_bbox(x1, y1, x2, y2, scale, img_width, img_height):
     new_y2 = min(img_height, int(cy + new_h / 2))
 
     return new_x1, new_y1, new_x2, new_y2
+
+def non_max_suppression(boxes, scores, iou_threshold=0.5):
+    if len(boxes) == 0:
+        return []
+    
+    boxes = np.array(boxes)
+    scores = np.array(scores)
+    
+    indices = np.argsort(scores)[::-1]
+    
+    keep = []
+    while len(indices) > 0:
+        current = indices[0]
+        keep.append(current)
+        
+        if len(indices) == 1:
+            break
+            
+        current_box = boxes[current]
+        remaining_boxes = boxes[indices[1:]]
+        
+        x1 = np.maximum(current_box[0], remaining_boxes[:, 0])
+        y1 = np.maximum(current_box[1], remaining_boxes[:, 1])
+        x2 = np.minimum(current_box[2], remaining_boxes[:, 2])
+        y2 = np.minimum(current_box[3], remaining_boxes[:, 3])
+        
+        intersection = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+        
+        area_current = (current_box[2] - current_box[0]) * (current_box[3] - current_box[1])
+        area_remaining = (remaining_boxes[:, 2] - remaining_boxes[:, 0]) * (remaining_boxes[:, 3] - remaining_boxes[:, 1])
+        union = area_current + area_remaining - intersection
+        
+        iou = intersection / (union + 1e-6)
+        
+        indices = indices[1:][iou < iou_threshold]
+    
+    return [boxes[i] for i in keep], [scores[i] for i in keep]
 
 def annotate_image_with_predictions(img, boxes, predictions, save_path):
     annotated_img = img.copy()
@@ -134,25 +170,75 @@ def create_classification_image(crop_img, class_name, confidence, save_path):
 
 class DiagnosisDetectionService:
     def __init__(self, model_path):
-        self.model = YOLO(model_path)
+        self.model_path = model_path
+        self.interpreter = tflite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+
+        input_details = self.interpreter.get_input_details()
+        output_details = self.interpreter.get_output_details()
+
+        self.input_index = input_details[0]['index']
+        self.output_index = output_details[0]['index']
+        self.input_shape = input_details[0]['shape']
+        self.input_size = (self.input_shape[2], self.input_shape[1])  # width, height
+        
 
     def detect(self, image_path):
-        results = self.model.predict(
-            source=image_path,
-            conf=DETECT_CONFIDENCE,
-            save=False,
-            imgsz=640,
-            device='cpu'
-        )
         img = cv2.imread(image_path)
-        img_height, img_width = img.shape[:2]
+        if img is None:
+            raise ValueError(f"Could not load image from {image_path}")
+            
+        original_h, original_w = img.shape[:2]
+        print(f"Original image size: {original_w}x{original_h}")
 
+        resized_img = cv2.resize(img, self.input_size)
+        input_data = resized_img / 255.0
+        input_data = np.expand_dims(input_data.astype(np.float32), axis=0)
+
+        self.interpreter.set_tensor(self.input_index, input_data)
+        self.interpreter.invoke()
+        output_data = self.interpreter.get_tensor(self.output_index)
+
+        detections = output_data[0]
+        
         boxes = []
-        for box in results[0].boxes.xyxy.cpu().numpy():
-            x1, y1, x2, y2 = box[:4]
-            boxes.append((
-                int(x1), int(y1), int(x2), int(y2)
-            ))
+        scores = []
+        
+        detections = detections.T
+        
+        for detection in detections:
+            x_center, y_center, width, height, confidence = detection
+            
+            if confidence < DETECT_CONFIDENCE:
+                continue
+                
+            x_center_px = x_center * original_w
+            y_center_px = y_center * original_h
+            width_px = width * original_w
+            height_px = height * original_h
+            
+            x1 = int(x_center_px - width_px / 2)
+            y1 = int(y_center_px - height_px / 2)
+            x2 = int(x_center_px + width_px / 2)
+            y2 = int(y_center_px + height_px / 2)
+            
+            x1 = max(0, min(x1, original_w))
+            y1 = max(0, min(y1, original_h))
+            x2 = max(0, min(x2, original_w))
+            y2 = max(0, min(y2, original_h))
+            
+            if x2 <= x1 or y2 <= y1:
+                continue
+                
+            boxes.append((x1, y1, x2, y2))
+            scores.append(confidence)
+
+        print(f"Found {len(boxes)} detections before NMS")
+        
+        # Apply Non-Maximum Suppression
+        if boxes:
+            boxes, scores = non_max_suppression(boxes, scores, iou_threshold=0.5)
+            print(f"Found {len(boxes)} detections after NMS")
 
         return boxes, img
 

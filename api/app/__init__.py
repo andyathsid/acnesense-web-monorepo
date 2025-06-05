@@ -11,9 +11,8 @@ def create_app(config_class=Config):
     app.index = load_index(app)
     
     # Warm up models
-    from app.utils.model_warmup import warm_up_model, warm_up_diagnosis_models
+    from app.utils.model_warmup import warm_up_diagnosis_models
     with app.app_context():
-        warm_up_model(app.config['DEFAULT_MODEL'])
         warm_up_diagnosis_models()
     
     # Register blueprints

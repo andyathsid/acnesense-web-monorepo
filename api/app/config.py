@@ -22,6 +22,6 @@ class Config:
     RESULTS_DIR = os.getenv('RESULTS_DIR', 'instance/results')
     
     # ML models paths
-    DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/best.pt')
+    DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/best_float32.tflite')
     CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/model.tflite')
     CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')

@@ -1,6 +1,0 @@
-tensorflow
-roboflow
-spicy
-numpy
-ultralytics
-matplotlib
