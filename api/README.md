@@ -24,12 +24,7 @@ pip install -r requirements.txt
 Create a .env file in the root directory with the following variables:
 
 ```
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
-ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv
-FAQS_PATH=data/knowledge-base/faqs.csv
-DEFAULT_MODEL=qwen2:7b
-OLLAMA_API_URL=http://localhost:11434/api/generate
+To be added
 ```
 
 ## Running the API
@@ -65,23 +60,27 @@ curl -X GET http://localhost:8000/health
 
 ### Question
 
-Ask a question about acne and get an answer.
+Ask a question about acne and get an answer in a specific language.
 
-**Request:**
+**Request with Language Parameters:**
 ```bash
 curl -X POST http://localhost:8000/question \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "What are the symptoms of cystic acne?"
+    "question": "Quels sont les symptômes de l'acné kystique?",
+    "target_language": "fr",
+    "translation_method": "google"
   }'
 ```
 
 **Response:**
 ```json
 {
-  "answer": "Cystic acne is characterized by deep, painful lumps or lesions under the skin. These nodules and abscesses often form tunnels that can lead to scarring upon healing. They typically appear on common locations such as the chest, back, and buttocks...",
-  "conversation_id": "57ae6b63-fe3b-428c-a54d-d915fad16ab9",
-  "question": "What are the symptoms of cystic acne?"
+  "answer": "L'acné kystique se caractérise par des bosses profondes et douloureuses sous la peau. Ces nodules et abcès forment souvent des tunnels qui peuvent entraîner des cicatrices lors de la guérison. Ils apparaissent généralement sur des zones courantes comme la poitrine, le dos et les fesses...",
+  "conversation_id": "84ae6b63-fe3b-428c-a54d-d915fad16ab9",
+  "question": "Quels sont les symptômes de l'acné kystique?",
+  "original_language": "fr",
+  "target_language": "fr"
 }
 ```
 
@@ -110,7 +109,7 @@ Note: Feedback value should be either 1 (positive) or -1 (negative).
 
 ### Diagnosis
 
-Get personalized recommendations based on acne types and user information.
+Get personalized recommendations in a specific language.
 
 **Request:**
 ```bash
@@ -123,14 +122,57 @@ curl -X POST http://localhost:8000/diagnosis \
       "skin_type": "Oily",
       "skin_tone": "Medium",
       "skin_sensitivity": "Medium"
-    }
+    },
+    "target_language": "es",
+    "translation_method": "llm"
   }'
 ```
 
 **Response:**
 ```json
 {
-  "recommendation": "OVERVIEW:\nThe patient has oily, medium-toned skin with medium sensitivity. They have been diagnosed with pustule acne on their face and back.\n\nRECOMMENDATIONS:\nGiven the patient's age (17) and skin type (oily), they should focus on using oil-free products that are non-comedogenic to prevent clogged pores...[detailed recommendations]"
+  "recommendation": "## RESUMEN\nEl paciente tiene piel grasa, de tono medio con sensibilidad media. Ha sido diagnosticado con acné pustular y papular.\n\n## RECOMENDACIONES\nDada la edad del paciente (17) y su tipo de piel (grasa), debe centrarse en usar productos sin aceite que sean no comedogénicos para prevenir los poros obstruidos...",
+  "format": "markdown",
+  "original_language": "en",
+  "target_language": "es",
+  "translation_method": "llm"
+}
+```
+
+### Combined-Diagnosis 
+
+Upload an image for diagnosis and get results in a specific language.
+
+**Request (using base64):**
+```bash
+curl -X POST http://localhost:8000/combined-diagnosis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "image": "BASE64_ENCODED_IMAGE_DATA",
+    "user_info": {
+      "age": 25,
+      "skin_type": "Combination",
+      "skin_tone": "Fair",
+      "skin_sensitivity": "High"
+    },
+    "target_language": "de",
+    "translation_method": "both"
+  }'
+```
+
+**Response:**
+```json
+{
+  "detection_results": [...],
+  "classification_results": [...],
+  "original_language": "en",
+  "target_language": "de",
+  "translation_method": "both",
+  "acne_types": ["Pustule", "Papule"],
+  "recommendation": "## ÜBERBLICK\nDer Patient hat Mischhaut mit hellem Hautton und hoher Empfindlichkeit. Es wurden Pusteln und Papeln diagnostiziert...",
+  "format": "markdown",
+  "google_translation": "...",
+  "llm_translation": "..."
 }
 ```
 
@@ -152,6 +194,18 @@ curl -X POST http://localhost:8000/diagnosis \
   - `skin_tone` (string): User's skin tone (e.g., "Fair", "Medium", "Dark")
   - `skin_sensitivity` (string): User's skin sensitivity (e.g., "Low", "Medium", "High")
 - `model` (string, optional): The LLM model to use (default: "qwen2:7b")
+
+## Multilingual Parameters
+
+The following parameters can be added to the `/question`, `/diagnosis`, and `/combined-diagnosis` endpoints:
+
+- `target_language` (string, optional): Language code for the response (e.g., "en", "fr", "es", "de")
+- `translation_method` (string, optional): Translation method to use:
+  - `"google"`: Use Google Translate (default)
+  - `"llm"`: Use the LLM model for translation
+  - `"both"`: Return translations from both methods for comparison
+
+If the target language is not specified or is set to "en", no translation will be performed.
 
 ## Error Responses
 
@@ -178,12 +232,107 @@ The knowledge base consists of:
 - acne_types.csv: Information about different acne types
 - faqs.csv: Frequently asked questions about acne
 
+---
 
-# Setting up Ngrok with Screen and Custom Domain
+# Cheatsheet stuff below
+
+## Docker Setup
+
+These are some essential commands on how build, run, and manage the Docker Compose for this project.
+
+### Quick Start
+
+```bash
+# 1. Build and start all services
+docker-compose up --build
+
+# 2. In a new terminal, pull the required AI model
+docker-compose exec ollama ollama pull qwen2:7b
+
+# 3. Test the API
+curl -X GET http://localhost:8000/health
+
+### View logs
+```bash
+# View logs from all services
+docker-compose logs
+
+# View logs from specific service
+docker-compose logs api
+docker-compose logs ollama
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# View last 50 lines
+docker-compose logs --tail=50
+```
+
+### Check available models
+```bash
+# List all pulled models
+docker-compose exec ollama ollama list
+
+# Check if ollama service is running
+docker-compose exec ollama ollama serve
+```
+
+### Check service status
+```bash
+# Check running containers
+docker-compose ps
+
+# Check container health
+docker-compose exec api curl -f http://localhost:8000/health
+docker-compose exec ollama curl -f http://localhost:11434/api/tags
+```
+
+### Stop running services
+```bash
+# Stop all services (graceful shutdown)
+docker-compose down
+
+# Stop services but keep containers
+docker-compose stop
+
+# Stop specific service
+docker-compose stop api
+docker-compose stop ollama
+
+# Force stop (immediate)
+docker-compose kill
+```
+
+### Restart services
+```bash
+# Restart all services
+docker-compose restart
+
+# Restart specific service
+docker-compose restart api
+docker-compose restart ollama
+```
+
+### Remove containers
+```bash
+# Stop and remove containers
+docker-compose down
+
+# Remove containers and networks
+docker-compose down --remove-orphans
+
+# Remove containers, networks, and images
+docker-compose down --rmi all
+
+# Remove everything including volumes (⚠️ DELETES ALL DATA)
+docker-compose down --volumes --rmi all
+```
+
+## Setting up Ngrok with Screen and Custom Domain
 
 Here's how to set up ngrok outside your Docker container with screen persistence and your custom domain:
 
-## 1. Install Dependencies
+### 1. Install Dependencies
 
 ```bash
 # Install screen if not already installed
@@ -196,7 +345,7 @@ echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/
 sudo apt update && sudo apt install ngrok
 ```
 
-## 2. Configure Ngrok with Custom Domain
+### 2. Configure Ngrok with Custom Domain
 
 ```bash
 # Authenticate with your ngrok account
@@ -214,7 +363,7 @@ tunnels:
 " > ~/.ngrok2/ngrok.yml
 ```
 
-## 3. Create Persistent Screen Session
+### 3. Create Persistent Screen Session
 
 ```bash
 # Create and attach to a new screen session named "ngrok"
@@ -227,7 +376,7 @@ ngrok http --domain=your-custom-domain.ngrok.io localhost:${FLASK_PORT}
 # Detach from screen by pressing: Ctrl+A then D
 ```
 
-## 4. Screen Management Commands
+### 4. Screen Management Commands
 
 ```bash
 # List running screen sessions
@@ -241,5 +390,3 @@ screen -X -S ngrok quit
 ```
 
 Remember to replace `YOUR_AUTH_TOKEN` and `your-custom-domain.ngrok.io` with your actual ngrok authentication token and custom domain.
-
-Similar code found with 2 license types
