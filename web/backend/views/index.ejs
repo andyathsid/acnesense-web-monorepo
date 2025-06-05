@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>AcneSense Responsive Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Maven+Pro:wght@400..900&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    body, html {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      background-color: #D6EBD5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .button-font {
+      font-family: 'poppins', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+    }
+    
+    .title-font {
+      font-family: 'manrope', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+    }
+    
+    .sub-title-font {
+      font-family: 'maven pro', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0">
+
+<!-- Mobile version (small screens) -->
+<div class="block md:hidden w-full min-h-screen relative rounded-none overflow-hidden bg-gray-800 shadow-lg">
+    <div class="relative w-full">
+      <img 
+        src="/image/login.png" 
+        alt="Face with acne" 
+        class="w-full h-full object-cover" 
+        style="object-position: center top;" 
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-black opacity-30"></div>
+    </div>
+    <div class="bg-[#E5F6E5] rounded-t-3xl absolute bottom-0 w-full p-8 shadow-inner flex flex-col" style="height:45%">
+        <div>
+          <h1 class="text-black text-center title-font leading-8 select-none">
+            Acne<span class="text-[#40c057]">Sense</span>
+          </h1>
+          <div class="justify-end self-end mb-5">
+            <p class="text-center sub-title-font leading-8 select-none">For Your Acne Solution</p>
+          </div>
+        </div>
+        <div class="flex justify-center mt-auto mb-auto">
+          <div class="flex flex-col items-center">
+            <button onclick="window.location.href='/login'" class="w-[270px] bg-[#546254] text-white py-2 rounded-md mb-4 button-font transition-colors hover:bg-[#43543d]">
+              Login
+            </button>
+            <button onclick="window.location.href='/register'" class="w-[270px] bg-[#74A674] text-white py-2 rounded-md button-font transition-colors hover:bg-[#628355]">
+              Register
+            </button>
+            <button id="install-mobile" style="display:none; margin-top: 10px;" class="w-[270px] bg-[#546254] text-white py-2 rounded-md mb-4 button-font transition-colors hover:bg-[#43543d]">
+              Install
+            </button>
+          </div>
+        </div>
+    </div>
+</div>
+
+<!-- Desktop / Tablet version (medium screens and up) -->
+<div class="hidden md:flex w-full max-w-screen-lg bg-[#D6EBD5] rounded-2xl shadow-lg overflow-hidden h-[650px]">
+  <!-- Left panel -->
+  <div class="bg-white w-1/2 p-10 flex flex-col justify-center items-center rounded-l-2xl text-center">
+    <h1 class="title-font mb-2 leading-6 select-none">
+      Acne<span class="text-[#40c057]">Sense</span>
+    </h1>
+    <p class="sub-title-font leading-6 mb-8 select-none">For Your Acne Solution</p>
+    <p class="mb-8 select-none font-semibold">Selamat Datang!</p>
+    <button onclick="window.location.href='/login'" class="w-full bg-[#546254] text-white py-3 rounded-md mb-4 text-sm font-semibold transition-colors hover:bg-[#43543d]">
+      Login
+    </button>
+    <button onclick="window.location.href='/register'" class="w-full bg-[#74A674] text-white py-3 rounded-md text-sm font-semibold transition-colors hover:bg-[#628355]">
+      Register
+    </button>
+    <button id="install-desktop" style="display:none; margin-top: 10px;" class="w-full bg-[#546254] text-white py-3 rounded-md mb-4 text-sm font-semibold transition-colors hover:bg-[#43543d]">
+      Install
+    </button>
+  </div>
+
+  <!-- Right panel -->
+  <div class="w-1/2">
+    <img
+      src="./image/login.png"
+      alt="Face with acne"
+      class="h-full w-full object-cover"
+      loading="lazy"
+    />
+  </div>
+</div>
+
+<script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+
+            // Variabel untuk menyimpan event beforeinstallprompt
+            let deferredPrompt;
+
+            // Event listener for beforeinstallprompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault(); // Mencegah Chrome dari menampilkan prompt default
+                deferredPrompt = e; // Simpan event untuk ditampilkan nanti
+                
+                // Tampilkan tombol install sesuai dengan tampilan
+                document.getElementById('install-mobile').style.display = 'block';  // Tampilkan button Install untuk mobile
+                document.getElementById('install-desktop').style.display = 'block'; // Tampilkan button Install untuk desktop
+            });
+
+            // Event listener untuk tombol install mobile
+            document.getElementById('install-mobile').addEventListener('click', () => {
+                document.getElementById('install-mobile').style.display = 'none'; // Sembunyikan tombol
+                deferredPrompt.prompt(); // Tampilkan prompt install
+
+                // Tunggu hasil
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null; // Reset deferredPrompt
+                });
+            });
+
+            // Event listener untuk tombol install desktop
+            document.getElementById('install-desktop').addEventListener('click', () => {
+                document.getElementById('install-desktop').style.display = 'none'; // Sembunyikan tombol
+                deferredPrompt.prompt(); // Tampilkan prompt install
+
+                // Tunggu hasil
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null; // Reset deferredPrompt
+                });
+            });
+
+        });
+    } else {
+        console.log('Service workers are not supported in this browser.');
+    }
+</script>
+</body>
+</html>
