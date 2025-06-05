@@ -7,7 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <title>AcneSense Responsive Login</title>
+    <title>AcneSense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link
@@ -24,6 +24,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+  <link rel="manifest" href="/manifest.json" />
+
     <style>
       body,
       html {
@@ -109,7 +111,7 @@
               class="block mb-2 text-gray-800 font-medium text-[15px]"
               >Password</label
             >
-            <div class="relative w-full max-w-xs">
+            <div class="relative w-full ">
               <input
                 id="password-mobile"
                 name="password"
@@ -329,5 +331,17 @@
       handleLogin(document.getElementById('loginFormMobile'));
       handleLogin(document.getElementById('loginFormDesktop'));
     </script>
+    <script>
+          // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(error) {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+            });
+        }
+</script>
   </body>
 </html>

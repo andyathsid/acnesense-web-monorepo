@@ -13,6 +13,7 @@ connection.connect((err) => {
     return;
   }
   console.log('Terhubung ke database MySQL');
+  console.log(`http://localhost:3000/preview`);
 });
 
 module.exports = connection;
