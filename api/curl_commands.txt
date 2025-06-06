@@ -2,8 +2,34 @@
 # Tests if the API server is running correctly
 curl -X GET http://localhost:8000/health
 
+# Postman
+{
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/...",
+    "user_info": {
+      "age": 25,
+      "skin_type": "Oily", 
+      "skin_tone": "Medium"
+    }
+  }
+
 # Image Diagnosis Endpoint
 curl -X POST http://localhost:8000/image-diagnosis -F "image=@/root/workspace/repos/acne-sense-monorepo-dev/api/images.jpg"
+
+# Combined Endpoint
+curl -X POST http://localhost:8000/combined-diagnosis \
+  -F "image=@/path/to/face_image.jpg" \
+  -F "user_info={\"age\": 25, \"skin_type\": \"Oily\", \"skin_tone\": \"Medium\", \"skin_sensitivity\": \"Medium\"}"
+
+curl -X POST http://localhost:5000/combined-diagnosis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/...",
+    "user_info": {
+      "age": 25,
+      "skin_type": "Oily", 
+      "skin_tone": "Medium"
+    },
+  }'
 
 # Question Endpoint (Basic Question)
 # Ask a question about acne and get an answer using RAG
@@ -13,7 +39,7 @@ curl -X POST http://localhost:8000/question \
 
 # Question Endpoint (Treatment Question)
 # Ask about treatment options
-curl -X POST http://localhost:8000/question \
+curl -X POST http://localhost:5000/question \
   -H "Content-Type: application/json" \
   -d "{\"question\": \"What are the best OTC ingredients for hormonal acne?\"}"
 
@@ -37,13 +63,20 @@ curl -X POST http://localhost:8000/diagnosis \
 
 # Windows-friendly versions (with ^ line continuation and escaped quotes)
 # Health Check
-curl -X GET http://localhost:8000/health
+curl -X GET http://localhost:5000/health
 
 # Question
 curl -X POST http://localhost:8000/question -H "Content-Type: application/json" -d "{\"question\": \"What are the symptoms of cystic acne?\"}"
 
+
+curl -X POST http://localhost:8000/question -H "Content-Type: application/json" -d '{"question": "Quels sont les symptômes de l'\''acné kystique?", "target_language": "fr", "translation_method": "google"}'
+
+
 # Feedback 
+
 curl -X POST http://localhost:8000/feedback -H "Content-Type: application/json" -d "{\"conversation_id\": \"57ae6b63-fe3b-428c-a54d-d915fad16ab9\", \"feedback\": 1}"
 
 # Diagnosis
 curl -X POST http://localhost:8000/diagnosis -H "Content-Type: application/json" -d "{\"acne_types\": [\"cystic\"], \"user_info\": {\"age\": 25, \"skin_type\": \"oily\", \"skin_tone\": \"medium\", \"skin_sensitivity\": \"moderate\"}}"
+
+
