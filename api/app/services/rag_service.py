@@ -4,7 +4,8 @@ import re
 from typing import Dict, List, Any
 from flask import current_app
 from openai import OpenAI
-from app.utils.auth_utils import get_access_token
+# from app.utils.auth_utils import get_access_token
+from app.services.translation_service import TranslationService
 
 # Templates
 DIAGNOSIS_TEMPLATE = """
@@ -159,50 +160,79 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     
     return context
 
-from app.utils.auth_utils import get_access_token
+# from app.utils.auth_utils import get_access_token
+
+# def call_llm(prompt: str, model: str = None) -> str:
+#     """Get response from Vertex AI using OpenAI client"""
+#     try:
+#         # Use the model from parameter or default from config
+#         model_name = model or current_app.config['DEFAULT_MODEL']
+#         vllm_api_url = current_app.config['VLLM_API_URL']
+        
+#         # Get cached or fresh access token
+#         access_token = get_access_token()
+        
+#         # Base URL should not have ":predict" suffix for OpenAI compatibility
+#         base_url = vllm_api_url.replace(":predict", "")
+        
+#         # Initialize OpenAI client for Vertex AI
+#         client = OpenAI(
+#             api_key=access_token,
+#             base_url=base_url,
+#             timeout=current_app.config.get('LLM_TIMEOUT', 60)
+#         )
+        
+#         # Create chat completion with improved parameters
+#         response = client.chat.completions.create(
+#             model=model_name,
+#             messages=[
+#                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             max_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
+#             temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+#             top_p=current_app.config.get('LLM_TOP_P', 0.8),
+#             presence_penalty=1.5,
+#             extra_body={
+#                 "top_k": 20, 
+#                 "chat_template_kwargs": {"enable_thinking": False},
+#             },
+#         )
+        
+#         return response.choices[0].message.content
+        
+#     except Exception as e:
+#         current_app.logger.error(f"Error calling LLM: {str(e)}")
+#         return f"Error connecting to Vertex AI: {str(e)}"
 
 def call_llm(prompt: str, model: str = None) -> str:
-    """Get response from Vertex AI using OpenAI client"""
+    """Get response from vLLM using OpenAI client"""
     try:
         # Use the model from parameter or default from config
         model_name = model or current_app.config['DEFAULT_MODEL']
-        vllm_api_url = current_app.config['VLLM_API_URL']
         
-        # Get cached or fresh access token
-        access_token = get_access_token()
-        
-        # Base URL should not have ":predict" suffix for OpenAI compatibility
-        base_url = vllm_api_url.replace(":predict", "")
-        
-        # Initialize OpenAI client for Vertex AI
+        # Initialize OpenAI client for vLLM
         client = OpenAI(
-            api_key=access_token,
-            base_url=base_url,
-            timeout=current_app.config.get('LLM_TIMEOUT', 60)
+            api_key="dummy-key",  # vLLM doesn't require real API key
+            base_url=current_app.config['VLLM_API_URL']
         )
         
-        # Create chat completion with improved parameters
+        # Create chat completion
         response = client.chat.completions.create(
             model=model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
-            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
-            top_p=current_app.config.get('LLM_TOP_P', 0.8),
-            presence_penalty=1.5,
-            extra_body={
-                "top_k": 20, 
-                "chat_template_kwargs": {"enable_thinking": False},
-            },
+            max_tokens=1000,
+            temperature=0.7
         )
         
         return response.choices[0].message.content
         
     except Exception as e:
-        current_app.logger.error(f"Error calling LLM: {str(e)}")
-        return f"Error connecting to Vertex AI: {str(e)}"
+        return f"Error connecting to vLLM: {str(e)}"
+
 
 def answer_question(query: str, model: str = None) -> str:
     """Answer a question using RAG"""
@@ -282,22 +312,79 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
     
     return response
 
-def rag(query: str, model: str = "qwen2:7b") -> Dict[str, Any]:
-    """Main RAG function to process a user query, now with relevance evaluation"""
+def rag(query: str, target_language: str = "en", 
+                    translation_method: str = "google", 
+                    model: str = None) -> Dict[str, Any]:
+    """
+    Multilingual RAG function to handle queries in any language
+    
+    Args:
+        query: User query in any language
+        target_language: Language to return answer in (default: "en")
+        translation_method: Translation method ("google", "llm", "both")
+        model: LLM model to use (default: from configuration)
+        
+    Returns:
+        Dictionary with answer and metadata
+    """
+    # Use the model from config if not specified
+    if model is None:
+        model = current_app.config['DEFAULT_MODEL']
+        
     t0 = time.time()
     
-    answer = answer_question(query, model=model)
+    # Initialize translation service
+    translation_svc = TranslationService()
     
-    # Evaluate the relevance of the answer
-    relevance_result = evaluate_relevance(query, answer, model)
+    # Step 1: Detect language and translate query to English if needed
+    source_language = translation_svc.detect_language(query)
+    original_query = query
     
+    # Translate query to English for processing if it's not already in English
+    if source_language != "en":
+        query_translation = translation_svc.translate(
+            text=query,
+            target_language="en",
+            source_language=source_language,
+            method=translation_method,
+            model=model
+        )
+        query = query_translation["translated_text"]
+    
+    # Step 2: Process the query with English RAG
+    answer_in_english = answer_question(query, model=model)
+    
+    # Step 3: Translate answer back to source language if needed
+    final_answer = answer_in_english
+    if target_language != "en":
+        answer_translation = translation_svc.translate(
+            text=answer_in_english,
+            target_language=target_language,
+            source_language="en",
+            method=translation_method,
+            model=model
+        )
+        final_answer = answer_translation["translated_text"]
+    
+    # Step 4: Evaluate relevance on English content
+    relevance_result = evaluate_relevance(
+        question=query if source_language == "en" else original_query,
+        answer=answer_in_english,
+        model=model
+    )
+    
+    # Calculate timing
     t1 = time.time()
     took = t1 - t0
 
+    # Prepare result
     result = {
-        "answer": answer,
+        "answer": final_answer,
         "model_used": model,
         "response_time": took,
+        "original_language": source_language,
+        "target_language": target_language,
+        "translation_method": translation_method,
         "relevance": relevance_result.get("Relevance", "UNKNOWN"),
         "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
     }

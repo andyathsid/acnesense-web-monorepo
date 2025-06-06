@@ -10,6 +10,7 @@ from flask import Blueprint, request, jsonify, current_app
 from app.services.rag_service import rag, process_diagnosis
 from app.services.db_service import save_conversation, save_feedback
 from app.services.diagnosis_service import DiagnosisPipeline
+from app.services.translation_service import TranslationService
 
 api_bp = Blueprint('api', __name__)
 
@@ -20,11 +21,14 @@ def health_check():
 
 @api_bp.route("/question", methods=["POST"])
 def handle_question():
-    """Answer a question using RAG"""
+    """Answer a question using RAG with multilingual support"""
     try:
         data = request.json
         question = data.get("question", "")
         model = data.get("model", current_app.config['DEFAULT_MODEL'])
+        # New parameters for multilingual support
+        target_language = data.get("target_language", "en")
+        translation_method = data.get("translation_method", "google")
         
         if not question:
             return jsonify({"error": "No question provided"}), 400
@@ -32,14 +36,21 @@ def handle_question():
         # Generate a unique conversation ID
         conversation_id = str(uuid.uuid4())
         
-        # Get answer with RAG including relevance evaluation
-        answer_data = rag(question, model=model)
+        # Use multilingual RAG with specified parameters
+        answer_data = rag(
+            query=question,
+            target_language=target_language,
+            translation_method=translation_method,
+            model=model
+        )
         
-        # Format result
+        # Format result with language information
         result = {
             "conversation_id": conversation_id,
             "question": question,
-            "answer": answer_data["answer"]
+            "answer": answer_data["answer"],
+            "original_language": answer_data.get("original_language", "en"),
+            "target_language": answer_data.get("target_language", "en")
         }
         
         # Save conversation to database
@@ -82,21 +93,51 @@ def handle_feedback():
 
 @api_bp.route("/diagnosis", methods=["POST"])
 def diagnosis():
-    """Process a diagnosis based on acne types and user info"""
+    """Process a diagnosis based on acne types and user info with multilingual support"""
     try:
         data = request.json
         acne_types = data.get("acne_types", [])
         user_info = data.get("user_info", {})
         model = data.get("model", current_app.config['DEFAULT_MODEL'])
+        # New parameters for multilingual support
+        target_language = data.get("target_language", "en")
+        translation_method = data.get("translation_method", "google")
         
         if not acne_types:
             return jsonify({"error": "No acne types provided"}), 400
         
-        result = process_diagnosis(acne_types, user_info, model=model)
-        return jsonify({
-            "recommendation": result,
-            "format": "markdown"
-        })
+        # Generate recommendations in English
+        recommendation_en = process_diagnosis(acne_types, user_info, model=model)
+        
+        # Initialize response with English content
+        result = {
+            "recommendation": recommendation_en,
+            "format": "markdown",
+            "original_language": "en",
+            "target_language": "en"
+        }
+        
+        # Translate if needed
+        if target_language != "en":
+            translation_svc = TranslationService()
+            
+            translation_result = translation_svc.translate(
+                text=recommendation_en,
+                target_language=target_language,
+                source_language="en",
+                method=translation_method,
+                model=model
+            )
+            
+            result["recommendation"] = translation_result["translated_text"]
+            result["original_language"] = "en"
+            result["target_language"] = target_language
+            result["translation_method"] = translation_method
+            
+            # Include original English recommendation for debugging
+            result["recommendation_in_english"] = recommendation_en
+        
+        return jsonify(result)
     
     except Exception as e:
         traceback.print_exc()
@@ -180,6 +221,8 @@ def combined_diagnosis():
         upload_path = None
         user_info = {}
         model = current_app.config['DEFAULT_MODEL']
+        target_language = "en"
+        translation_method = "google"
         
         # Check if request is JSON (for base64) or form (for file upload)
         if request.is_json:
@@ -188,6 +231,9 @@ def combined_diagnosis():
             base64_image = data.get('image')
             user_info = data.get('user_info', {})
             model = data.get('model', current_app.config['DEFAULT_MODEL'])
+            # Get language parameters
+            target_language = data.get('target_language', 'en')
+            translation_method = data.get('translation_method', 'google')
             
             if not base64_image:
                 return jsonify({"error": "No image data provided"}), 400
@@ -230,6 +276,12 @@ def combined_diagnosis():
             if 'model' in request.form:
                 model = request.form['model']
                 
+            # Get language parameters from form data
+            if 'target_language' in request.form:
+                target_language = request.form['target_language']
+            if 'translation_method' in request.form:
+                translation_method = request.form['translation_method']
+                
             # Generate unique filename to prevent collisions
             filename = f"{str(uuid.uuid4())}.jpg"
             upload_path = os.path.join(current_app.config['UPLOAD_DIR'], filename)
@@ -265,8 +317,31 @@ def combined_diagnosis():
                 restructured_results["message"] = "No acne detected to generate recommendations"
                 return jsonify(restructured_results)
             
-            # Generate recommendations based on detected acne types
-            recommendation = process_diagnosis(acne_types, user_info, model=model)
+            # Generate recommendations based on detected acne types in English
+            recommendation_en = process_diagnosis(acne_types, user_info, model=model)
+            
+            # Initialize translation info
+            translation_info = {"original_language": "en", "target_language": "en"}
+            
+            # Translate recommendation if needed
+            recommendation = recommendation_en
+            if target_language != "en":
+                translation_svc = TranslationService()
+                
+                translation_result = translation_svc.translate(
+                    text=recommendation_en,
+                    target_language=target_language,
+                    source_language="en",
+                    method=translation_method,
+                    model=model
+                )
+                
+                recommendation = translation_result["translated_text"]
+                translation_info = {
+                    "original_language": "en",
+                    "target_language": target_language,
+                    "translation_method": translation_method
+                }
             
             # Restructure the response (move metadata fields up)
             metadata = image_results.pop("metadata", {})
@@ -275,10 +350,15 @@ def combined_diagnosis():
             combined_results = {
                 **image_results,
                 **metadata,
+                **translation_info,
                 "acne_types": acne_types,
                 "recommendation": recommendation,
                 "format": "markdown"
             }
+            
+            # Add English recommendation for debugging if translated
+            if target_language != "en":
+                combined_results["recommendation_in_english"] = recommendation_en
             
             return jsonify(combined_results)
             

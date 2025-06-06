@@ -5,6 +5,13 @@ load_dotenv()
 
 class Config:
     # Supabase configuration
+    
+    env = os.getenv("FLASK_ENV", "development")
+    if env == "production":
+        load_dotenv(".env.prod", override=True)
+    else:
+        load_dotenv(".env.dev", override=True)
+        
     SUPABASE_URL = os.getenv('SUPABASE_URL')
     SUPABASE_KEY = os.getenv('SUPABASE_KEY')
     
