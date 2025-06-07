@@ -167,14 +167,13 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Set session
-    req.session.userId = user.id;
-    req.session.userEmail = user.email;
-    req.session.userName = profile.nama;
-    req.session.userAge = profile.umur;
-    req.session.userPhoto = profile.foto_profile;
-    req.session.accessToken = session.access_token;
-    req.session.loginTime = new Date();
+    // Set HTTP-only cookie for token
+    res.cookie('access_token', session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
 
     console.log(`User logged in: ${user.email} at ${new Date()}`);
     
@@ -186,7 +185,8 @@ router.post('/login', async (req, res) => {
         name: profile.nama,
         email: user.email,
         age: profile.umur
-      }
+      },
+      token: session.access_token
     });
 
   } catch (error) {
@@ -201,25 +201,18 @@ router.post('/login', async (req, res) => {
 // Logout route
 router.post('/logout', requireAuth, async (req, res) => {
   try {
-    const userEmail = req.session.userEmail;
+    const userEmail = req.user.email;
     
     // Sign out from Supabase
     await User.signOut();
     
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destroy error:', err);
-        return res.json({
-          success: false,
-          message: 'Gagal logout!'
-        });
-      }
-      
-      console.log(`User logged out: ${userEmail} at ${new Date()}`);
-      res.json({
-        success: true,
-        message: 'Logout berhasil!'
-      });
+    // Clear the cookie
+    res.clearCookie('access_token');
+    
+    console.log(`User logged out: ${userEmail} at ${new Date()}`);
+    res.json({
+      success: true,
+      message: 'Logout berhasil!'
     });
   } catch (error) {
     console.error('Logout error:', error);
@@ -233,14 +226,14 @@ router.post('/logout', requireAuth, async (req, res) => {
 // Protected routes
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.redirect('/login');
     }
 
     res.render('dashboard', {
       user: user,
-      loginTime: req.session.loginTime
+      loginTime: new Date() // Since we don't track login time in tokens, use current time
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -250,7 +243,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 
 router.get('/deteksi', requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     res.render('deteksi', { user });
   } catch (error) {
     console.error('Deteksi error:', error);
@@ -260,7 +253,7 @@ router.get('/deteksi', requireAuth, async (req, res) => {
 
 router.get('/preview', requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     const imageUrl = req.query.image || '';
     res.render('preview', { user, imageUrl });
   } catch (error) {
@@ -271,7 +264,7 @@ router.get('/preview', requireAuth, async (req, res) => {
 
 router.get('/chatbot', requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     res.render('chatbot', { user });
   } catch (error) {
     console.error('Chatbot error:', error);
@@ -281,14 +274,14 @@ router.get('/chatbot', requireAuth, async (req, res) => {
 
 router.get('/riwayat', requireAuth, async (req, res) => {
   try {
-    const riwayatData = await Riwayat.findByUserId(req.session.userId);
+    const riwayatData = await Riwayat.findByUserId(req.user.id);
     
     const truncatedResults = riwayatData.map(item => ({
       ...item,
       overview: truncateOverview(item.overview, 20)
     }));
 
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     res.render('riwayat', {
       user,
       riwayat: truncatedResults
@@ -309,7 +302,7 @@ function truncateOverview(overview, wordLimit) {
 router.get('/hasil/:id_riwayat', requireAuth, async (req, res) => {
   try {
     const idRiwayat = req.params.id_riwayat;
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(req.user.id);
     
     // Get riwayat with details
     const riwayatData = await Riwayat.findById(idRiwayat);
@@ -362,7 +355,7 @@ router.post('/save-detection', requireAuth, async (req, res) => {
     const skincareTips = `## SKINCARE TIPS\n\n${detectionData.recommendation.split('## SKINCARE TIPS')[1].split('## IMPORTANT NOTES')[0].trim()}`;
     const importantNotes = `## IMPORTANT NOTES\n\n${detectionData.recommendation.split('## IMPORTANT NOTES')[1] || ''}`;
     
-    const userId = req.session.userId;
+    const userId = req.user.id;
     const acneTypes = detectionData.acne_types;
     const judulPenyakit = acneTypes.join(', ');
     const detectionResultImage = detectionData.detection_result;
@@ -419,13 +412,13 @@ router.post('/save-detection', requireAuth, async (req, res) => {
 
 // API routes
 router.get('/api/session-status', (req, res) => {
-  if (req.session.userId) {
+  if (req.user) {
     res.json({
       loggedIn: true,
       user: {
-        id: req.session.userId,
-        name: req.session.userName,
-        email: req.session.userEmail
+        id: req.user.id,
+        name: req.userProfile?.nama,
+        email: req.user.email
       }
     });
   } else {

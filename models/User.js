@@ -140,15 +140,34 @@ class User {
         }
     }
 
-    static async getSession() {
+    static async refreshSession(refreshToken) {
         try {
-            const { data: { session }, error } = await supabase.auth.getSession();
+            const { data, error } = await supabase.auth.refreshSession({
+                refresh_token: refreshToken
+            });
+            
             if (error) {
                 throw new Error(error.message);
             }
-            return session;
+            
+            return data;
         } catch (error) {
-            console.error('Get session error:', error);
+            console.error('Refresh session error:', error);
+            throw error;
+        }
+    }
+
+    static async verifyToken(token) {
+        try {
+            const { data: { user }, error } = await supabase.auth.getUser(token);
+            
+            if (error) {
+                throw new Error(error.message);
+            }
+            
+            return user;
+        } catch (error) {
+            console.error('Token verification error:', error);
             return null;
         }
     }
