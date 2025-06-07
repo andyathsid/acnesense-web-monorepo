@@ -3,6 +3,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes/routes');
 const { supabase } = require('./config/db');
+const viteHelper = require('./config/vite');
 require('dotenv').config();
 
 const app = express();
@@ -36,6 +37,12 @@ app.use(async (req, res, next) => {
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Make Vite helper available to all templates
+app.use((req, res, next) => {
+  res.locals.vite = viteHelper;
+  next();
+});
 
 // Routes
 app.use('/', routes);
