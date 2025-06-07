@@ -1,22 +1,52 @@
-FROM node:18-slim
+# Stage 1: Build Stage
+FROM node:18-slim AS builder
 
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including devDependencies for the build)
+RUN npm ci
 
-# Copy application code
+# Copy source code and configuration files
 COPY . .
 
-# Environment variables
+# Build the application with Vite
+RUN npm run build
+
+# Stage 2: Production Stage
+FROM node:18-slim
+
+WORKDIR /app
+
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Copy package files
+COPY package*.json ./
+
+# Install ONLY production dependencies
+RUN npm ci --only=production
+
+# Copy application files from builder stage
+COPY --from=builder /app/server.js ./
+COPY --from=builder /app/config ./config
+COPY --from=builder /app/middleware ./middleware
+COPY --from=builder /app/models ./models
+COPY --from=builder /app/routes ./routes
+COPY --from=builder /app/views ./views
+
+# Copy built Vite assets from builder stage
+COPY --from=builder /app/public ./public
+
 # Expose port
 EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["node", "server.js"]
