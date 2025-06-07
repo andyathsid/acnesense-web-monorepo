@@ -1,165 +1,121 @@
-# Vertex AI Endpoint Deployment
+name: Deploy API to Cloud Run
 
-## Uploading custom vLLM model container
-```bash
-gcloud ai models upload \
-  --project="$PROJECT_NAME" \
-  --region="$REGION" \
-  --display-name="$IMAGE_NAME" \
-  --container-image-uri="$REPOSITORY:$REPOSITORY_BUILD" \
-  --container-command="python,-m,vllm.entrypoints.openai.api_server" \
-  --container-args="--host=0.0.0.0,--port=7080,--model=$MODEL_NAME,--max-model-len=4156" \
-  --container-ports=7080 \
-  --container-health-route="/health" \
-  --container-predict-route="/v1/chat/completions"
-```
+env:
+  SERVICE_NAME: acne-sense-api
+  GITHUB_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-southeast1
+  DOCKER_IMAGE_URL: asia-southeast1-docker.pkg.dev/acne-sense/acne-sense-api/acne-sense-api
+  
+  COMMON_ENV_VARS: >-
+    FLASK_ENV=production,
+    FLASK_PORT=8000,
+    PROJECT_NAME=acne-sense,
+    REGION=asia-southeast1,
+    ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv,
+    FAQS_PATH=data/knowledge-base/faqs.csv
 
-## Create an endpoint
-```bash
-gcloud ai endpoints create \
-  --project="$PROJECT_NAME" \
-  --region="$REGION" \
-  --display-name="acne-sense-vllm-endpoint"
-```
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api/**'
 
-## Get the endpoint ID
-```bash
-export ENDPOINT_ID=$(gcloud ai endpoints list \
-  --project="$PROJECT_NAME" \
-  --region="$REGION" \
-  --filter="display_name=acne-sense-vllm-endpoint" \
-  --format="value(name)")
-```
+jobs:
+  dockerize-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
 
-## List Model
-```bash
-gcloud ai models list \
-  --project="$PROJECT_NAME" \
-  --region="$REGION"
-```
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-## Deploy the model to the endpoint
-```bash
-gcloud ai endpoints deploy-model "$ENDPOINT_ID" \
-  --project="$PROJECT_NAME" \
-  --model="$MODEL_ID" \
-  --display-name="acne-sense-vllm" \
-  --region="$REGION" \
-  --min-replica-count=1 \
-  --max-replica-count=1 \
-  --traffic-split=0=100 \
-  --machine-type=g2-standard-8 \
-  --accelerator=type=nvidia-l4,count=1 \
-  --enable-access-logging
-```
+      - name: Google Cloud Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          project_id: ${{ env.GITHUB_PROJECT_ID }}
 
-# Deploy API Container to Google Cloud Run
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-## 1. Set up Artifact Registry repository
-```bash
-gcloud artifacts repositories create acne-sense-api \
-    --repository-format=docker \
-    --location=$REGION \
-    --description="Acne Sense API Docker repository"
-```
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-## 2. Configure Docker to use Artifact Registry
-```bash
-gcloud auth configure-docker $REGION-docker.pkg.dev
-```
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE_URL }}:${{ github.sha }} -f Dockerfile.prod .
+          docker build -t ${{ env.DOCKER_IMAGE_URL }}:latest -f Dockerfile.prod .
+          docker push ${{ env.DOCKER_IMAGE_URL }}:${{ github.sha }}
+          docker push ${{ env.DOCKER_IMAGE_URL }}:latest
+      
+      - name: Set PR environment variables
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "PR_ENV_VARS=${{ env.COMMON_ENV_VARS }},DEFAULT_MODEL='default'" >> $GITHUB_ENV
+          
+      - name: Set Main environment variables
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "MAIN_ENV_VARS=${{ env.COMMON_ENV_VARS }},DEFAULT_MODEL=/models/Qwen3-8B-AWQ,LLM_MAX_TOKENS=8192,LLM_TEMPERATURE=0.7,LLM_TOP_P=0.8,LLM_TIMEOUT=60" >> $GITHUB_ENV
 
-## 3. Build Docker image
-```bash
-# Build directly with Docker
-docker build -t $REGION-docker.pkg.dev/$PROJECT_NAME/acne-sense-api/acne-sense-api:latest .
+      - name: Deploy to Cloud Run (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Remove whitespace from ENV_VARS
+          ENV_VARS=$(echo "${{ env.PR_ENV_VARS }}" | tr -d ' \n\t')
+          
+          gcloud run deploy ${{ env.SERVICE_NAME }}-pr-${{ github.event.number }} \
+            --image ${{ env.DOCKER_IMAGE_URL }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --port 8000 \
+            --set-env-vars="${ENV_VARS}" \
+            --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest,PROJECT_ID=acne-api-project-id:latest" \
+            --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com \
+            --tag pr-${{ github.event.number }}
 
-# OR using docker-compose
-docker-compose -f docker-compose.prod.yaml build
-docker tag acne-sense-api:latest $REGION-docker.pkg.dev/$PROJECT_NAME/acne-sense-api/acne-sense-api:latest
-```
+      - name: Deploy to Cloud Run (Main)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # Remove whitespace from ENV_VARS
+          ENV_VARS=$(echo "${{ env.MAIN_ENV_VARS }}" | tr -d ' \n\t')
+          
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.DOCKER_IMAGE_URL }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --port 8000 \
+            --set-env-vars="${ENV_VARS}" \
+            --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest,PROJECT_ID=acne-api-project-id:latest" \
+            --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com
 
-## 4. Push image to Artifact Registry
-```bash
-docker push $REGION-docker.pkg.dev/$PROJECT_NAME/acne-sense-api/acne-sense-api:latest
-```
-
-## 5. Create secrets in Secret Manager
-```bash
-# Create secrets
-gcloud secrets create acne-api-supabase-url --replication-policy="automatic"
-gcloud secrets create acne-api-supabase-key --replication-policy="automatic"
-gcloud secrets create acne-api-endpoint-id --replication-policy="automatic"
-gcloud secrets create acne-api-model-id --replication-policy="automatic"
-
-# Add secret values
-echo -n "$SUPABASE_URL" | gcloud secrets versions add acne-api-supabase-url --data-file=-
-echo -n "$SUPABASE_KEY" | gcloud secrets versions add acne-api-supabase-key --data-file=-
-echo -n "$ENDPOINT_ID" | gcloud secrets versions add acne-api-endpoint-id --data-file=-
-echo -n "$MODEL_ID" | gcloud secrets versions add acne-api-model-id --data-file=-
-```
-
-## 6. Grant service account access to secrets
-```bash
-# Grant access to each secret
-for SECRET in acne-api-supabase-url acne-api-supabase-key acne-api-endpoint-id acne-api-model-id; do
-  gcloud secrets add-iam-policy-binding $SECRET \
-    --member="serviceAccount:acne-sense-api@acne-sense.iam.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
-done
-```
-
-## 7. Deploy to Cloud Run
-```bash
-gcloud run deploy acne-sense-api \
-    --image $REGION-docker.pkg.dev/$PROJECT_NAME/acne-sense-api/acne-sense-api:latest \
-    --platform managed \
-    --region $REGION \
-    --allow-unauthenticated \
-    --memory 2Gi \
-    --cpu 2 \
-    --port $FLASK_PORT \
-    --set-env-vars="FLASK_ENV=production,FLASK_PORT=$FLASK_PORT,PROJECT_ID=$PROJECT_ID,PROJECT_NAME=$PROJECT_NAME,REGION=$REGION,ACNE_TYPES_PATH=$ACNE_TYPES_PATH,FAQS_PATH=$FAQS_PATH,DEFAULT_MODEL=$DEFAULT_MODEL,LLM_MAX_TOKENS=$LLM_MAX_TOKENS,LLM_TEMPERATURE=$LLM_TEMPERATURE,LLM_TOP_P=$LLM_TOP_P,LLM_TIMEOUT=$LLM_TIMEOUT" \
-    --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest" \
-    --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com
-```
-
-## 8. Setting up GitHub Actions CI/CD
-
-### Create a service account for GitHub Actions
-```bash
-gcloud iam service-accounts create github-actions \
-    --description="Service account for GitHub Actions" \
-    --display-name="GitHub Actions"
-```
-
-### Grant necessary permissions
-```bash
-# Cloud Run admin permission
-gcloud projects add-iam-policy-binding $PROJECT_NAME \
-    --member="serviceAccount:github-actions@$PROJECT_NAME.iam.gserviceaccount.com" \
-    --role="roles/run.admin"
-
-# Artifact Registry permission
-gcloud projects add-iam-policy-binding $PROJECT_NAME \
-    --member="serviceAccount:github-actions@$PROJECT_NAME.iam.gserviceaccount.com" \
-    --role="roles/artifactregistry.admin"
-
-# Service account user permission
-gcloud projects add-iam-policy-binding $PROJECT_NAME \
-    --member="serviceAccount:github-actions@$PROJECT_NAME.iam.gserviceaccount.com" \
-    --role="roles/iam.serviceAccountUser"
-    
-# Secret Manager access
-gcloud projects add-iam-policy-binding $PROJECT_NAME \
-    --member="serviceAccount:github-actions@$PROJECT_NAME.iam.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
-```
-
-### Create and download service account key
-```bash
-gcloud iam service-accounts keys create key.json \
-    --iam-account=github-actions@$PROJECT_NAME.iam.gserviceaccount.com
-```
-
-### Add the key to GitHub repository secrets
-# Upload the key.json contents as a GitHub secret named GCP_SA_KEY
+      - name: Comment PR with preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: service } = await google.run('v1').projects.locations.services.get({
+              name: `projects/${{ env.GITHUB_PROJECT_ID }}/locations/${{ env.REGION }}/services/${{ env.SERVICE_NAME }}-pr-${{ github.event.number }}`
+            });
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview deployment ready!**\n\nURL: ${service.status.url}\n\nThis preview will be available until the PR is merged or closed.`
+            });

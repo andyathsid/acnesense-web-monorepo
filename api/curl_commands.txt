@@ -39,7 +39,7 @@ curl -X POST http://localhost:8000/question \
 
 # Question Endpoint (Treatment Question)
 # Ask about treatment options
-curl -X POST http://localhost:5000/question \
+curl -X POST http://localhost:8000/question \
   -H "Content-Type: application/json" \
   -d "{\"question\": \"What are the best OTC ingredients for hormonal acne?\"}"
 
@@ -69,7 +69,7 @@ curl -X GET http://localhost:5000/health
 curl -X POST http://localhost:8000/question -H "Content-Type: application/json" -d "{\"question\": \"What are the symptoms of cystic acne?\"}"
 
 
-curl -X POST http://localhost:8000/question -H "Content-Type: application/json" -d '{"question": "Quels sont les symptômes de l'\''acné kystique?", "target_language": "fr", "translation_method": "google"}'
+curl -X POST http://localhost:5000/question -H "Content-Type: application/json" -d '{"question": "Quels sont les symptômes de l'\''acné kystique?", "target_language": "fr", "translation_method": "google"}'
 
 
 # Feedback 

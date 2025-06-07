@@ -1,4 +1,4 @@
-name: acne-sense-vllm
+name: acne-sense-api
 services:
   api-service:
     image: acne-sense-api:latest
@@ -12,52 +12,18 @@ services:
     ports:
       - "${FLASK_PORT}:${FLASK_PORT}"
     env_file:
-      - .env.dev
+      - .env
     environment:
       - FLASK_APP=run.py
-      - FLASK_ENV=development
-      - VLLM_API_URL=http://acne-sense-vllm:${VLLM_PORT}/v1
+      - FLASK_DEBUG=0
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
     volumes:
       - ./data:/app/data
-    depends_on:
-      - vllm-service
-    networks:
-      - acne-sense-network
+      - ./models:/app/models
+      - ./service-account-key.json:/app/service-account-key.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${FLASK_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  vllm-service:
-    image: vllm/vllm-openai:latest
-    container_name: acne-sense-vllm
-    restart: unless-stopped
-    ports:
-      - "${VLLM_PORT}:${VLLM_PORT}"
-    env_file:
-      - .env.dev
-    volumes:
-        - ~/.cache/huggingface:/root/.cache/huggingface
-        - ./models:/models
-    command: >
-      --model /models/Qwen2.5-3B-Instruct-AWQ
-      --port ${VLLM_PORT}
-    networks:
-      - acne-sense-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: 
-                - gpu
-networks:
-  acne-sense-network:
-    driver: bridge
-
-volumes:
-  vllm-models:
-    driver: local
