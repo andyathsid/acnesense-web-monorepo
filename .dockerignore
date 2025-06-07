@@ -17,3 +17,34 @@ docker-compose*.yaml
 
 # Development files
 coverage/
+
+# Git
+.git/
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation and readme files (optional - remove if needed in container)
+README.md
+Readme.md
+*.md
+
+# Build output (will be generated during build)
+public/dist/
+
+# Development only files that aren't needed in final image
+# Note: These are still copied to build stage but help keep context smaller
