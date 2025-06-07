@@ -410,6 +410,15 @@ router.post('/save-detection', requireAuth, async (req, res) => {
   }
 });
 
+// Health check endpoint for Docker
+router.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // API routes
 router.get('/api/session-status', (req, res) => {
   if (req.user) {
