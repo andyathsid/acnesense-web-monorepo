@@ -1,0 +1,29 @@
+name: acne-sense-api
+services:
+  api-service:
+    image: acne-sense-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - FLASK_PORT=${FLASK_PORT}
+    container_name: acne-sense-api
+    restart: unless-stopped
+    ports:
+      - "${FLASK_PORT}:${FLASK_PORT}"
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_DEBUG=0
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./service-account-key.json:/app/service-account-key.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FLASK_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

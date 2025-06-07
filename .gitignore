@@ -94,6 +94,7 @@ ENV/
 env.bak/
 venv.bak/
 ml/llm/.acne-sense-llm-venv/
+ml/api/.acne-sense-api-venv/
 
 # Spyder project settings
 .spyderproject
@@ -128,3 +129,5 @@ dmypy.json
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+service-account-key.json
