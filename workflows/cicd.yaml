@@ -1,0 +1,187 @@
+name: Deploy API to Cloud Run
+
+env:
+  SERVICE_NAME: acne-sense-api
+  PROJECT_ID: acne-sense
+  REGION: asia-southeast1
+  DOCKER_IMAGE_URL: asia-southeast1-docker.pkg.dev/acne-sense/acne-sense-api/acne-sense-api
+  
+  # Common environment variables for all deployments
+  COMMON_ENV_VARS: >-
+    FLASK_ENV=production,
+    FLASK_PORT=8000,
+    PROJECT_ID=143761779858,
+    PROJECT_NAME=acne-sense,
+    REGION=asia-southeast1,
+    ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv,
+    FAQS_PATH=data/knowledge-base/faqs.csv,
+    DEFAULT_MODEL='default',
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - api-staging
+          - production
+
+jobs:
+  dockerize-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set deployment variables
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual deployment
+            case "${{ github.event.inputs.environment }}" in
+              "staging")
+                echo "SERVICE_SUFFIX=-staging" >> $GITHUB_ENV
+                echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+                ;;
+              "api-staging")
+                echo "SERVICE_SUFFIX=-api-staging" >> $GITHUB_ENV
+                echo "DEPLOY_ENV=api-staging" >> $GITHUB_ENV
+                ;;
+              "production")
+                echo "SERVICE_SUFFIX=" >> $GITHUB_ENV
+                echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+                ;;
+            esac
+          elif [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
+            # Auto deployment to production
+            echo "SERVICE_SUFFIX=" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR preview
+            echo "SERVICE_SUFFIX=-pr-${{ github.event.number }}" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=pr-preview" >> $GITHUB_ENV
+          fi
+
+      - name: Google Cloud Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          # Use branch name or environment as tag for staging deployments
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+            TAG="${{ env.DEPLOY_ENV }}-${{ github.sha }}"
+          else
+            TAG="${{ github.sha }}"
+          fi
+          
+          docker build -t ${{ env.DOCKER_IMAGE_URL }}:${TAG} -f Dockerfile.prod .
+          docker push ${{ env.DOCKER_IMAGE_URL }}:${TAG}
+          
+          # Also tag as latest for the specific environment
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" ]]; then
+            docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:staging-latest
+            docker push ${{ env.DOCKER_IMAGE_URL }}:staging-latest
+          elif [[ "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+            docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:api-staging-latest
+            docker push ${{ env.DOCKER_IMAGE_URL }}:api-staging-latest
+          elif [[ "${{ env.DEPLOY_ENV }}" == "production" ]]; then
+            docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:latest
+            docker push ${{ env.DOCKER_IMAGE_URL }}:latest
+          fi
+
+      - name: Set environment variables
+        run: |
+          # Set environment-specific variables
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" ]]; then
+            ENV_VARS="${{ env.COMMON_ENV_VARS }}FLASK_ENV=staging,"
+          elif [[ "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+            ENV_VARS="${{ env.COMMON_ENV_VARS }}FLASK_ENV=api-staging,"
+          else
+            ENV_VARS="${{ env.COMMON_ENV_VARS }}"
+          fi
+          
+          echo "DEPLOYMENT_ENV_VARS=${ENV_VARS}" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          # Remove whitespace from ENV_VARS
+          ENV_VARS=$(echo "${{ env.DEPLOYMENT_ENV_VARS }}" | tr -d ' \n\t')
+          
+          # Set image tag
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+            IMAGE_TAG="${{ env.DEPLOY_ENV }}-${{ github.sha }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+          
+          # Deploy with appropriate service name
+          SERVICE_NAME="${{ env.SERVICE_NAME }}${{ env.SERVICE_SUFFIX }}"
+          
+          gcloud run deploy ${SERVICE_NAME} \
+            --image ${{ env.DOCKER_IMAGE_URL }}:${IMAGE_TAG} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --port 8000 \
+            --set-env-vars="${ENV_VARS}" \
+            --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest" \
+            --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com \
+            $( [[ "${{ github.event_name }}" == "pull_request" ]] && echo "--tag pr-${{ github.event.number }}" || echo "" )
+
+      - name: Output deployment info
+        run: |
+          SERVICE_NAME="${{ env.SERVICE_NAME }}${{ env.SERVICE_SUFFIX }}"
+          echo "🚀 Deployed to: ${SERVICE_NAME}"
+          echo "Environment: ${{ env.DEPLOY_ENV }}"
+          echo "Region: ${{ env.REGION }}"
+          
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
+            --region=${{ env.REGION }} \
+            --format="value(status.url)")
+          echo "URL: ${SERVICE_URL}"
+
+      - name: Comment PR with preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: service } = await google.run('v1').projects.locations.services.get({
+              name: `projects/${{ env.PROJECT_ID }}/locations/${{ env.REGION }}/services/${{ env.SERVICE_NAME }}-pr-${{ github.event.number }}`
+            });
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview deployment ready!**\n\nURL: ${service.status.url}\n\nThis preview will be available until the PR is merged or closed.`
+            });
