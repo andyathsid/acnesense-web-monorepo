@@ -1,0 +1,19 @@
+# Node.js specific
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+.yarn
+
+# Docker files
+Dockerfile*
+docker-compose*.yaml
+.dockerignore
+
+# Environment files
+.env*
+!.env.example
+
+# Development files
+coverage/
