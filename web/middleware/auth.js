@@ -1,57 +1,55 @@
-const { supabaseAdmin } = require('../config/db');
+const { supabase } = require('../config/db');
 const User = require('../models/User');
 
 const requireAuth = async (req, res, next) => {
     try {
-        // For session-based auth, check session first
-        if (req.session.userId && req.session.accessToken) {
-            // Verify the session token is still valid
-            const { data: { user }, error } = await supabaseAdmin.auth.getUser(req.session.accessToken);
+        const token = req.headers.authorization?.replace('Bearer ', '') || 
+                      req.cookies?.access_token;
+
+        if (!token) {
+            return res.redirect('/login');
+        }
+
+        // Verify the token with Supabase
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (error || !user) {
+            // Clear invalid token
+            res.clearCookie('access_token');
+            return res.redirect('/login');
+        }
+
+        // Get updated user profile
+        try {
+            const profile = await User.findById(user.id);
+            if (!profile) {
+                res.clearCookie('access_token');
+                return res.redirect('/login');
+            }
+
+            // Add user data to request
+            req.user = user;
+            req.userProfile = profile;
+            req.accessToken = token;
             
-            if (error || !user || user.id !== req.session.userId) {
-                req.session.destroy(() => {
-                    return res.redirect('/login');
-                });
-                return;
-            }
-
-            // Get updated user profile
-            try {
-                const profile = await User.findById(user.id);
-                if (!profile) {
-                    req.session.destroy(() => {
-                        return res.redirect('/login');
-                    });
-                    return;
-                }
-
-                // Update session with fresh data
-                req.user = user;
-                req.userProfile = profile;
-                req.session.userEmail = user.email;
-                req.session.userName = profile.nama;
-                req.session.userPhoto = profile.foto_profile;
-                
-                next();
-            } catch (profileError) {
-                console.error('Profile fetch error:', profileError);
-                req.session.destroy(() => {
-                    return res.redirect('/login');
-                });
-            }
-        } else {
+            next();
+        } catch (profileError) {
+            console.error('Profile fetch error:', profileError);
+            res.clearCookie('access_token');
             return res.redirect('/login');
         }
     } catch (error) {
         console.error('Auth middleware error:', error);
-        req.session.destroy(() => {
-            res.redirect('/login');
-        });
+        res.clearCookie('access_token');
+        res.redirect('/login');
     }
 };
 
 const requireGuest = (req, res, next) => {
-    if (req.session.userId) {
+    const token = req.headers.authorization?.replace('Bearer ', '') || 
+                  req.cookies?.access_token;
+    
+    if (token && req.user) {
         return res.redirect('/dashboard');
     }
     next();

@@ -1,7 +1,8 @@
 const express = require('express');
-const session = require('express-session');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const routes = require('./routes/routes');
+const { supabase } = require('./config/db');
 require('dotenv').config();
 
 const app = express();
@@ -11,17 +12,26 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
 
-// Session configuration
-app.use(session({
-  secret: process.env.JWT_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+// Custom auth middleware instead of express-session
+app.use(async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '') || 
+                req.cookies?.access_token;
+  
+  if (token) {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (!error && user) {
+        req.user = user;
+        req.accessToken = token;
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
+    }
   }
-}));
+  next();
+});
 
 // View engine
 app.set('view engine', 'ejs');
