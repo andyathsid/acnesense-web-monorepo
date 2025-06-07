@@ -4,7 +4,7 @@ import re
 from typing import Dict, List, Any
 from flask import current_app
 from openai import OpenAI
-# from app.utils.auth_utils import get_access_token
+from app.utils.auth_utils import get_access_token
 from app.services.translation_service import TranslationService
 
 # Templates
@@ -126,7 +126,6 @@ FIELD_WEIGHTS = {
 
 def search(query: str, filter_dict: Dict = None, num_results: int = 5) -> List[Dict]:
     """Search the index with the given query and filters"""
-    from flask import current_app
     
     if filter_dict is None:
         filter_dict = {}
@@ -160,78 +159,93 @@ def build_context_from_documents(documents: List[Dict]) -> str:
     
     return context
 
-# from app.utils.auth_utils import get_access_token
-
-# def call_llm(prompt: str, model: str = None) -> str:
-#     """Get response from Vertex AI using OpenAI client"""
-#     try:
-#         # Use the model from parameter or default from config
-#         model_name = model or current_app.config['DEFAULT_MODEL']
-#         vllm_api_url = current_app.config['VLLM_API_URL']
-        
-#         # Get cached or fresh access token
-#         access_token = get_access_token()
-        
-#         # Base URL should not have ":predict" suffix for OpenAI compatibility
-#         base_url = vllm_api_url.replace(":predict", "")
-        
-#         # Initialize OpenAI client for Vertex AI
-#         client = OpenAI(
-#             api_key=access_token,
-#             base_url=base_url,
-#             timeout=current_app.config.get('LLM_TIMEOUT', 60)
-#         )
-        
-#         # Create chat completion with improved parameters
-#         response = client.chat.completions.create(
-#             model=model_name,
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
-#                 {"role": "user", "content": prompt}
-#             ],
-#             max_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
-#             temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
-#             top_p=current_app.config.get('LLM_TOP_P', 0.8),
-#             presence_penalty=1.5,
-#             extra_body={
-#                 "top_k": 20, 
-#                 "chat_template_kwargs": {"enable_thinking": False},
-#             },
-#         )
-        
-#         return response.choices[0].message.content
-        
-#     except Exception as e:
-#         current_app.logger.error(f"Error calling LLM: {str(e)}")
-#         return f"Error connecting to Vertex AI: {str(e)}"
 
 def call_llm(prompt: str, model: str = None) -> str:
-    """Get response from vLLM using OpenAI client"""
+    """Get response from Vertex AI using OpenAI client"""
     try:
         # Use the model from parameter or default from config
         model_name = model or current_app.config['DEFAULT_MODEL']
+        vllm_api_url = current_app.config['VLLM_API_URL']
         
-        # Initialize OpenAI client for vLLM
+        # Get cached or fresh access token with better error handling
+        try:
+            access_token = get_access_token()
+            if not access_token:
+                raise Exception("Failed to obtain valid access token")
+        except Exception as auth_error:
+            current_app.logger.error(f"Authentication error: {str(auth_error)}")
+            return f"Authentication failed: Unable to connect to Vertex AI. Please check service account configuration."
+        
+        # Initialize OpenAI client for Vertex AI
         client = OpenAI(
-            api_key="dummy-key",  # vLLM doesn't require real API key
-            base_url=current_app.config['VLLM_API_URL']
+            api_key=access_token,
+            base_url=vllm_api_url,
+            timeout=60 
         )
         
-        # Create chat completion
+        # Create chat completion with improved parameters
         response = client.chat.completions.create(
             model=model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000,
-            temperature=0.7
+            max_tokens=2800,  
+            temperature=0.7,   
+            top_p=0.8,         
+            presence_penalty=1.5,
+            extra_body={
+                "top_k": 20, 
+                "chat_template_kwargs": {"enable_thinking": False},
+            },
         )
         
-        return response.choices[0].message.content
+        # Check if this is an error response
+        if hasattr(response, 'object') and response.object == 'error':
+            error_message = f"API Error: {response.type} - {response.message}"
+            current_app.logger.error(error_message)
+            return f"Error calling language model: {error_message}"
+            
+        # Only try to access choices if they exist
+        if hasattr(response, 'choices') and response.choices:
+            return response.choices[0].message.content
+        else:
+            error_msg = f"Unexpected API response format: {response}"
+            current_app.logger.error(error_msg)
+            return f"Error: {error_msg}"
         
     except Exception as e:
-        return f"Error connecting to vLLM: {str(e)}"
+        error_msg = f"Error calling LLM: {str(e)}"
+        current_app.logger.error(error_msg)
+        return f"Error connecting to Vertex AI: {str(e)}"
+
+# def call_llm(prompt: str, model: str = None) -> str:
+#     """Get response from vLLM using OpenAI client"""
+#     try:
+#         # Use the model from parameter or default from config
+#         model_name = model or current_app.config['DEFAULT_MODEL']
+        
+#         # Initialize OpenAI client for vLLM
+#         client = OpenAI(
+#             api_key="dummy-key",  # vLLM doesn't require real API key
+#             base_url=current_app.config['VLLM_API_URL']
+#         )
+        
+#         # Create chat completion
+#         response = client.chat.completions.create(
+#             model=model_name,
+#             messages=[
+#                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             max_tokens=1000,
+#             temperature=0.7
+#         )
+        
+#         return response.choices[0].message.content
+        
+#     except Exception as e:
+#         return f"Error connecting to vLLM: {str(e)}"
 
 
 def answer_question(query: str, model: str = None) -> str:

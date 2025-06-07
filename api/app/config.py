@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Supabase configuration
     
     env = os.getenv("FLASK_ENV", "development")
     if env == "production":
