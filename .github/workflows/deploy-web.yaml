@@ -1,33 +1,27 @@
-name: Deploy API to Cloud Run
+name: Deploy Web App to Cloud Run
 
 env:
-  SERVICE_NAME: acne-sense-api
+  SERVICE_NAME: acne-sense-web
   PROJECT_ID: acne-sense
   REGION: asia-southeast1
-  DOCKER_IMAGE_URL: asia-southeast1-docker.pkg.dev/acne-sense/acne-sense-api/acne-sense-api
+  DOCKER_IMAGE_URL: asia-southeast1-docker.pkg.dev/acne-sense/acne-sense-web/acne-sense-web
   
   # Common environment variables for all deployments
   COMMON_ENV_VARS: >-
-    FLASK_ENV=production,
-    FLASK_PORT=8000,
-    PROJECT_ID=143761779858,
-    PROJECT_NAME=acne-sense,
-    REGION=asia-southeast1,
-    ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv,
-    FAQS_PATH=data/knowledge-base/faqs.csv,
-    DEFAULT_MODEL='default',
+    NODE_ENV=production,
+    API_BASE_URL=https://acne-sense-api-nr5s2obcca-as.a.run.app
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'api/**'
+      - 'web/**'
   pull_request:
     branches:
       - main
     paths:
-      - 'api/**'
+      - 'web/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -37,15 +31,15 @@ on:
         type: choice
         options:
           - staging
-          - api-staging
+          - web-staging
           - production
 
 jobs:
-  dockerize-and-deploy:
+  deploy-web:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./api
+        working-directory: ./web
 
     steps:
       - name: Checkout repository
@@ -60,9 +54,9 @@ jobs:
                 echo "SERVICE_SUFFIX=-staging" >> $GITHUB_ENV
                 echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
                 ;;
-              "api-staging")
-                echo "SERVICE_SUFFIX=-api-staging" >> $GITHUB_ENV
-                echo "DEPLOY_ENV=api-staging" >> $GITHUB_ENV
+              "web-staging")
+                echo "SERVICE_SUFFIX=-web-staging" >> $GITHUB_ENV
+                echo "DEPLOY_ENV=web-staging" >> $GITHUB_ENV
                 ;;
               "production")
                 echo "SERVICE_SUFFIX=" >> $GITHUB_ENV
@@ -95,22 +89,22 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           # Use branch name or environment as tag for staging deployments
-          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "web-staging" ]]; then
             TAG="${{ env.DEPLOY_ENV }}-${{ github.sha }}"
           else
             TAG="${{ github.sha }}"
           fi
           
-          docker build -t ${{ env.DOCKER_IMAGE_URL }}:${TAG} -f Dockerfile.prod .
+          docker build -t ${{ env.DOCKER_IMAGE_URL }}:${TAG} -f Dockerfile .
           docker push ${{ env.DOCKER_IMAGE_URL }}:${TAG}
           
           # Also tag as latest for the specific environment
           if [[ "${{ env.DEPLOY_ENV }}" == "staging" ]]; then
             docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:staging-latest
             docker push ${{ env.DOCKER_IMAGE_URL }}:staging-latest
-          elif [[ "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
-            docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:api-staging-latest
-            docker push ${{ env.DOCKER_IMAGE_URL }}:api-staging-latest
+          elif [[ "${{ env.DEPLOY_ENV }}" == "web-staging" ]]; then
+            docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:web-staging-latest
+            docker push ${{ env.DOCKER_IMAGE_URL }}:web-staging-latest
           elif [[ "${{ env.DEPLOY_ENV }}" == "production" ]]; then
             docker tag ${{ env.DOCKER_IMAGE_URL }}:${TAG} ${{ env.DOCKER_IMAGE_URL }}:latest
             docker push ${{ env.DOCKER_IMAGE_URL }}:latest
@@ -120,9 +114,9 @@ jobs:
         run: |
           # Set environment-specific variables
           if [[ "${{ env.DEPLOY_ENV }}" == "staging" ]]; then
-            ENV_VARS="${{ env.COMMON_ENV_VARS }}FLASK_ENV=staging,"
-          elif [[ "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
-            ENV_VARS="${{ env.COMMON_ENV_VARS }}FLASK_ENV=api-staging,"
+            ENV_VARS="${{ env.COMMON_ENV_VARS }},NODE_ENV=staging"
+          elif [[ "${{ env.DEPLOY_ENV }}" == "web-staging" ]]; then
+            ENV_VARS="${{ env.COMMON_ENV_VARS }},NODE_ENV=web-staging"
           else
             ENV_VARS="${{ env.COMMON_ENV_VARS }}"
           fi
@@ -135,7 +129,7 @@ jobs:
           ENV_VARS=$(echo "${{ env.DEPLOYMENT_ENV_VARS }}" | tr -d ' \n\t')
           
           # Set image tag
-          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "api-staging" ]]; then
+          if [[ "${{ env.DEPLOY_ENV }}" == "staging" || "${{ env.DEPLOY_ENV }}" == "web-staging" ]]; then
             IMAGE_TAG="${{ env.DEPLOY_ENV }}-${{ github.sha }}"
           else
             IMAGE_TAG="${{ github.sha }}"
@@ -149,12 +143,12 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --memory 2Gi \
-            --cpu 2 \
-            --port 8000 \
+            --memory 1Gi \
+            --cpu 1 \
+            --port 3000 \
             --set-env-vars="${ENV_VARS}" \
-            --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest" \
-            --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com \
+            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,SUPABASE_SERVICE_ROLE_KEY=acne-sense-supabase-service-role-key:latest,JWT_SECRET=acne-sense-jwt-secret:latest,SUPABASE_PG_CONNECTION_STRING=acne-sense-supabase-pg-connection-string:latest" \
+            --service-account acne-sense-sa@acne-sense.iam.gserviceaccount.com \
             $( [[ "${{ github.event_name }}" == "pull_request" ]] && echo "--tag pr-${{ github.event.number }}" || echo "" )
 
       - name: Output deployment info
@@ -183,5 +177,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 **Preview deployment ready!**\n\nURL: ${service.status.url}\n\nThis preview will be available until the PR is merged or closed.`
+              body: `🚀 **Web App Preview deployment ready!**\n\nURL: ${service.status.url}\n\nThis preview will be available until the PR is merged or closed.`
             });
