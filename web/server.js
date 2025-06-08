@@ -48,9 +48,10 @@ app.use(async (req, res, next) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Make Vite helper available to all templates
+// Make Vite helper and API URL available to all templates
 app.use((req, res, next) => {
   res.locals.vite = viteHelper;
+  res.locals.API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
   next();
 });
 
