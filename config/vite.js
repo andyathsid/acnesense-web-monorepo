@@ -31,7 +31,7 @@ class ViteHelper {
         'deteksi': 'js/deteksi.js'
       };
       const filePath = entryPointMap[entrypoint] || entrypoint;
-      return `http://localhost:5174/${filePath}`;
+      return `http://localhost:5173/${filePath}`;
     } else {
       // Production mode - use manifest to get hashed filenames
       if (this.manifest && this.manifest[entrypoint]) {
@@ -41,7 +41,6 @@ class ViteHelper {
       return `/dist/${entrypoint}`;
     }
   }
-
   getCSSUrl(entrypoint) {
     if (this.isDev) {
       // In dev mode, CSS is injected by Vite
@@ -54,7 +53,7 @@ class ViteHelper {
       return null;
     }
   }
-  
+
   getScriptTag(entrypoint) {
     const url = this.getAssetUrl(entrypoint);
     if (this.isDev) {
