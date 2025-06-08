@@ -1,0 +1,46 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies with cleanup in same layer to reduce image size
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install OpenCV headless for smaller footprint
+RUN pip install --no-cache-dir opencv-python-headless
+
+# Copy requirements first for better layer caching
+COPY requirements.prod.txt .
+RUN pip install --no-cache-dir -r requirements.prod.txt
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV FLASK_APP=app:create_app
+ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
+
+# Port configuration from environment with default
+ARG FLASK_PORT=8000
+ENV FLASK_PORT=${FLASK_PORT}
+EXPOSE ${FLASK_PORT}
+
+RUN mkdir -p data/knowledge-base
+RUN mkdir -p models/classification
+RUN mkdir -p models/detection
+
+# Copy data files
+COPY data/knowledge-base/*.csv data/knowledge-base/
+
+# Copy model files
+COPY models/classification/* models/classification/
+COPY models/detection/* models/detection/
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:${FLASK_PORT}/health || exit 1
+
+# Start with gunicorn for production
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${FLASK_PORT} --worker-tmp-dir /dev/shm --workers 4 --timeout 300 --access-logfile - --error-logfile - 'app:create_app()'"]
