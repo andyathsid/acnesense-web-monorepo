@@ -31,17 +31,17 @@ class ViteHelper {
         'deteksi': 'js/deteksi.js'
       };
       const filePath = entryPointMap[entrypoint] || entrypoint;
-      return `http://localhost:5174/${filePath}`;
+      return `http://localhost:5173/${filePath}`;
     } else {
       // Production mode - use manifest to get hashed filenames
       if (this.manifest && this.manifest[entrypoint]) {
-        return `/${this.manifest[entrypoint].file}`;
+        return `/dist/${this.manifest[entrypoint].file}`;
       }
       // Fallback
-      return `/${entrypoint}`;
+      return `/dist/${entrypoint}`;
     }
   }
-
+  
   getCSSUrl(entrypoint) {
     if (this.isDev) {
       // In dev mode, CSS is injected by Vite
