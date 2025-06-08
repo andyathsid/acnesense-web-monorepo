@@ -153,7 +153,7 @@ jobs:
             --cpu 2 \
             --port 8000 \
             --set-env-vars="${ENV_VARS}" \
-            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,ENDPOINT_ID=acne-sense-endpoint-id:latest,MODEL_ID=acne-sense-model-id:latest,PROJECT_ID=acne-sense-project-id:latest" \
+            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,ENDPOINT_ID=acne-sense-endpoint-id:latest,MODEL_ID=acne-sense-model-id:latest" \
             --service-account acne-sense-sa@acne-sense.iam.gserviceaccount.com \
             $( [[ "${{ github.event_name }}" == "pull_request" ]] && echo "--tag pr-${{ github.event.number }}" || echo "" )
 
