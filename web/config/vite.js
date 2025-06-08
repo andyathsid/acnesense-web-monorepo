@@ -13,7 +13,7 @@ class ViteHelper {
 
   loadManifest() {
     try {
-      const manifestPath = path.join(__dirname, '../public/dist/manifest.json');
+      const manifestPath = path.join(__dirname, '../dist/.vite/manifest.json');
       if (fs.existsSync(manifestPath)) {
         this.manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       }
@@ -35,10 +35,10 @@ class ViteHelper {
     } else {
       // Production mode - use manifest to get hashed filenames
       if (this.manifest && this.manifest[entrypoint]) {
-        return `/dist/${this.manifest[entrypoint].file}`;
+        return `/${this.manifest[entrypoint].file}`;
       }
       // Fallback
-      return `/dist/${entrypoint}`;
+      return `/${entrypoint}`;
     }
   }
 
@@ -49,7 +49,7 @@ class ViteHelper {
     } else {
       // Production mode - use manifest to get CSS files
       if (this.manifest && this.manifest[entrypoint] && this.manifest[entrypoint].css) {
-        return this.manifest[entrypoint].css.map(css => `/dist/${css}`);
+        return this.manifest[entrypoint].css.map(css => `/${css}`);
       }
       return null;
     }

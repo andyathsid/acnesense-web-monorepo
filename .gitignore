@@ -10,7 +10,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -125,7 +124,6 @@ package-lock.json
 yarn.lock
 
 # Build outputs
-dist/
 build/
 out/
 *.tsbuildinfo
@@ -163,7 +161,6 @@ coverage/
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
