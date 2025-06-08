@@ -1,0 +1,45 @@
+# Common
+.git/
+.github/
+.gitignore
+*.md
+!README.md
+
+# Python specific
+**/__pycache__/
+**/.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*-venv/
+ENV/
+.eggs/
+*.egg-info/
+
+# Node.js specific
+**/node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+.yarn
+
+# Docker files
+**/Dockerfile*
+**/.dockerignore
+**/docker-compose*.yaml
+
+# Development files
+**/.vscode/
+**/.idea/
+**/*.ipynb
+**/curl_commands.txt
+**/*.log
+
+# Environment files
+**/.env*
+**/.flaskenv
+!**/.env.example
