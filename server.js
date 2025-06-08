@@ -1,10 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes/routes');
 const { supabase } = require('./config/db');
 const viteHelper = require('./config/vite');
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
