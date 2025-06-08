@@ -185,7 +185,7 @@
 
       // Kirim permintaan ke API dan tunggu respons
       try {
-        const response = await fetch('http://localhost:5000/question', {
+        const response = await fetch('<%= API_BASE_URL %>/question', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -220,7 +220,7 @@
 
       // Kirim permintaan ke API dan tunggu respons
       try {
-        const response = await fetch('http://localhost:5000/question', {
+        const response = await fetch('<%= API_BASE_URL %>/question', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
