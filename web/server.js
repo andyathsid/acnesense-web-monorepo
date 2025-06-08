@@ -13,7 +13,16 @@ const PORT = process.env.PORT || 3000;
 // Middleware untuk parsing
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Static file serving with environment-aware logic
+if (process.env.NODE_ENV === 'production') {
+  console.log('INFO: Serving static files from web/dist');
+  app.use(express.static(path.join(__dirname, 'dist')));
+} else {
+  console.log('INFO: Serving static files from web/public');
+  app.use(express.static(path.join(__dirname, 'public')));
+}
+
 app.use(cookieParser());
 
 // Custom auth middleware instead of express-session
