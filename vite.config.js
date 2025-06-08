@@ -6,16 +6,16 @@ export default defineConfig({
   plugins: [
     fullReload(['views/**/*.ejs', 'server.js', 'routes/**/*.js'])
   ],
-  root: 'src',
-  publicDir: '../public',
+  root: resolve(import.meta.dirname, 'src'),
+  publicDir: resolve(import.meta.dirname, 'public'),
   build: {
-    outDir: '../public/dist',
+    outDir: resolve(import.meta.dirname, 'dist'),
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
       input: {
-        main: resolve(process.cwd(), 'src/js/main.js'),
-        deteksi: resolve(process.cwd(), 'src/js/deteksi.js')
+        main: resolve(import.meta.dirname, 'src/js/main.js'),
+        deteksi: resolve(import.meta.dirname, 'src/js/deteksi.js')
       }
     }
   },
