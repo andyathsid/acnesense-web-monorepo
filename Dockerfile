@@ -39,7 +39,7 @@ COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/views ./views
 
 # Copy built Vite assets from builder stage
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/dist ./dist
 
 # Expose port
 EXPOSE 3000
