@@ -153,8 +153,8 @@ jobs:
             --cpu 2 \
             --port 8000 \
             --set-env-vars="${ENV_VARS}" \
-            --update-secrets="SUPABASE_URL=acne-api-supabase-url:latest,SUPABASE_KEY=acne-api-supabase-key:latest,ENDPOINT_ID=acne-api-endpoint-id:latest,MODEL_ID=acne-api-model-id:latest" \
-            --service-account acne-sense-api@acne-sense.iam.gserviceaccount.com \
+            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,ENDPOINT_ID=acne-sense-endpoint-id:latest,MODEL_ID=acne-sense-model-id:latest,PROJECT_ID=acne-sense-project-id:latest" \
+            --service-account acne-sense-sa@acne-sense.iam.gserviceaccount.com \
             $( [[ "${{ github.event_name }}" == "pull_request" ]] && echo "--tag pr-${{ github.event.number }}" || echo "" )
 
       - name: Output deployment info
