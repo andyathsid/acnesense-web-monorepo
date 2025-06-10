@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables
+require('dotenv').config();
+
 class ViteHelper {
   constructor() {
     this.isDev = process.env.NODE_ENV !== 'production';
@@ -34,22 +37,30 @@ class ViteHelper {
       return `http://localhost:5173/${filePath}`;
     } else {
       // Production mode - use manifest to get hashed filenames
-      if (this.manifest && this.manifest[entrypoint]) {
-        return `/dist/${this.manifest[entrypoint].file}`;
+      if (this.manifest) {
+        // Check both the entry name and "js/entryName.js" format
+        const entry = this.manifest[entrypoint] || this.manifest[`js/${entrypoint}.js`];
+        if (entry) {
+          return `/${entry.file}`;  // Remove 'dist/' prefix as Express serves from /dist
+        }
       }
       // Fallback
-      return `/dist/${entrypoint}`;
+      return `/${entrypoint}`;
     }
   }
-  
   getCSSUrl(entrypoint) {
     if (this.isDev) {
       // In dev mode, CSS is injected by Vite
       return null;
     } else {
       // Production mode - use manifest to get CSS files
-      if (this.manifest && this.manifest[entrypoint] && this.manifest[entrypoint].css) {
-        return this.manifest[entrypoint].css.map(css => `/${css}`);
+      if (this.manifest) {
+        // Try both the entrypoint name and "js/entrypoint.js" format
+        const entry = this.manifest[`js/${entrypoint}.js`] || this.manifest[entrypoint]; 
+        if (entry && entry.css) {
+          // Corrected path mapping - remove /dist/ prefix
+          return entry.css.map(cssFile => `/${cssFile}`); 
+        }
       }
       return null;
     }
@@ -73,7 +84,7 @@ class ViteHelper {
 
   getViteClientScript() {
     if (this.isDev) {
-      return '<script type="module" src="http://localhost:5174/@vite/client"></script>';
+      return '<script type="module" src="http://localhost:5173/@vite/client"></script>';
     }
     return '';
   }
