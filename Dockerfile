@@ -6,8 +6,12 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install ALL dependencies (including devDependencies for the build)
-RUN npm ci
+# Install dependencies - use npm install if package-lock.json doesn't exist
+RUN if [ -f package-lock.json ]; then \
+        npm ci; \
+    else \
+        npm install; \
+    fi
 
 # Copy source code and configuration files
 COPY . .
@@ -22,13 +26,16 @@ WORKDIR /app
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3000
 
 # Copy package files
 COPY package*.json ./
 
 # Install ONLY production dependencies
-RUN npm ci --only=production
+RUN if [ -f package-lock.json ]; then \
+        npm ci --omit=dev; \
+    else \
+        npm install --omit=dev; \
+    fi
 
 # Copy application files from builder stage
 COPY --from=builder /app/server.js ./
@@ -44,9 +51,12 @@ COPY --from=builder /app/dist ./dist
 # Expose port
 EXPOSE 3000
 
-# Health check
+# Health check using node to make HTTP request
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["node", "server.js"]
+
+
+
