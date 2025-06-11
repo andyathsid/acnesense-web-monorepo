@@ -29,7 +29,7 @@ class Config:
     
     # Build the Vertex AI URL
     VLLM_API_URL = os.getenv('VLLM_API_URL', 
-                             f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/{ENDPOINT_ID}")
+                        f"https://{REGION.strip()}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID.strip()}/locations/{REGION.strip()}/endpoints/{ENDPOINT_ID.strip()}")
     
     # Additional LLM settings
     LLM_MAX_TOKENS = int(os.getenv('LLM_MAX_TOKENS', '2048'))
