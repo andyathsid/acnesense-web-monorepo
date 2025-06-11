@@ -9,7 +9,7 @@ env:
   # Common environment variables for all deployments
   COMMON_ENV_VARS: >-
     NODE_ENV=production,
-    API_BASE_URL=https://acne-sense-api-nr5s2obcca-as.a.run.app
+    API_BASE_URL=https://acne-sense-api-143761779858.asia-southeast1.run.app
 
 on:
   push:
