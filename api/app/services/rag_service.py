@@ -167,6 +167,9 @@ def call_llm(prompt: str, model: str = None) -> str:
         model_name = model or current_app.config['DEFAULT_MODEL']
         vllm_api_url = current_app.config['VLLM_API_URL']
         
+        # Sanitize the URL - remove any newlines or whitespace
+        vllm_api_url = vllm_api_url.strip()
+        
         # Get cached or fresh access token with better error handling
         try:
             access_token = get_access_token()
