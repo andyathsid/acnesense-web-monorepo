@@ -3,6 +3,7 @@ const { requireAuth, requireGuest } = require('../middleware/auth');
 const User = require('../models/User');
 const Riwayat = require('../models/Riwayat');
 const RiwayatDetail = require('../models/RiwayatDetail');
+const { marked } = require('marked');
 const router = express.Router();
 
 // Utility function for age calculation
@@ -328,7 +329,11 @@ router.get('/preview', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     const imageUrl = req.query.image || '';
-    res.render('preview', { user, imageUrl });
+    res.render('preview', { 
+      user, 
+      imageUrl,
+      API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:5000'
+    });
   } catch (error) {
     console.error('Preview error:', error);
     res.redirect('/login');
@@ -395,16 +400,22 @@ router.get('/hasil/:id_riwayat', requireAuth, async (req, res) => {
       return item.gambar_detail ? `data:image/jpeg;base64,${item.gambar_detail}` : null;
     }).filter(image => image);
 
+    // Convert markdown to HTML for display
+    const overviewHtml = riwayatData.overview ? marked.parse(riwayatData.overview) : '';
+    const recommendationsHtml = riwayatData.recommendations ? marked.parse(riwayatData.recommendations) : '';
+    const skincareTipsHtml = riwayatData.skincare_tips ? marked.parse(riwayatData.skincare_tips) : '';
+    const importantNotesHtml = riwayatData.important_notes ? marked.parse(riwayatData.important_notes) : '';
+
     res.render('hasil', {
       user,
       jumlah_deteksi: riwayatDetails.length,
       klas_deteksi: uniqueAcneTypes,
       image_asli: riwayatData.gambar,
       image_klas: imageKlas,
-      overview: riwayatData.overview,
-      recommendations: riwayatData.recommendations,
-      skincare_tips: riwayatData.skincare_tips,
-      important_notes: riwayatData.important_notes
+      overview: overviewHtml,
+      recommendations: recommendationsHtml,
+      skincare_tips: skincareTipsHtml,
+      important_notes: importantNotesHtml
     });
   } catch (error) {
     console.error('Hasil error:', error);
@@ -416,17 +427,23 @@ router.post('/save-detection', requireAuth, async (req, res) => {
   try {
     const detectionData = req.body;
 
+    // Check for required data - now expecting recommendation_sections instead of recommendation
     if (!detectionData.acne_types || !detectionData.classification_results || 
-        !detectionData.detection_classes || !detectionData.recommendation || 
-        !detectionData.captured_image) {
+        !detectionData.detection_classes || !detectionData.captured_image) {
       return res.status(400).json({ success: false, message: 'Data tidak lengkap.' });
     }
 
-    // Extract recommendation sections
-    const overview = `## OVERVIEW\n${detectionData.recommendation.split('## OVERVIEW')[1].split('## RECOMMENDATIONS')[0].trim()}`;
-    const recommendations = `## RECOMMENDATIONS\n\n${detectionData.recommendation.split('## RECOMMENDATIONS')[1].split('## SKINCARE TIPS')[0].trim()}`;
-    const skincareTips = `## SKINCARE TIPS\n\n${detectionData.recommendation.split('## SKINCARE TIPS')[1].split('## IMPORTANT NOTES')[0].trim()}`;
-    const importantNotes = `## IMPORTANT NOTES\n\n${detectionData.recommendation.split('## IMPORTANT NOTES')[1] || ''}`;
+    // Check for recommendation_sections 
+    if (!detectionData.recommendation_sections) {
+      return res.status(400).json({ success: false, message: 'Data rekomendasi tidak tersedia.' });
+    }
+
+    // Extract sections from structured format
+    const sections = detectionData.recommendation_sections;
+    const overview = sections.overview ? `${sections.overview}` : '';
+    const recommendations = sections.recommendations ? `${sections.recommendations}` : '';
+    const skincareTips = sections.skincare_tips ? `${sections.skincare_tips}` : '';
+    const importantNotes = sections.important_notes ? `${sections.important_notes}` : '';
     
     const userId = req.user.id;
     const acneTypes = detectionData.acne_types;

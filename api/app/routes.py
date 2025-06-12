@@ -36,12 +36,13 @@ def handle_question():
         # Generate a unique conversation ID
         conversation_id = str(uuid.uuid4())
         
-        # Use multilingual RAG with specified parameters
+        # Use multilingual RAG with specified parameters and thinking budget for questions
         answer_data = rag(
             query=question,
             target_language=target_language,
             translation_method=translation_method,
-            model=model
+            model=model,
+            thinking_budget=256  # Allow some thinking for question answering
         )
         
         # Format result with language information
@@ -106,36 +107,42 @@ def diagnosis():
         if not acne_types:
             return jsonify({"error": "No acne types provided"}), 400
         
-        # Generate recommendations in English
-        recommendation_en = process_diagnosis(acne_types, user_info, model=model)
+        # Generate recommendations in English (now returns structured sections)
+        recommendation_sections = process_diagnosis(acne_types, user_info, model=model)
         
         # Initialize response with English content
         result = {
-            "recommendation": recommendation_en,
-            "format": "markdown",
+            "recommendation_sections": recommendation_sections,
+            "format": "structured",
             "original_language": "en",
             "target_language": "en"
         }
         
-        # Translate if needed
+        # Translate each section if needed
         if target_language != "en":
             translation_svc = TranslationService()
+            translated_sections = {}
             
-            translation_result = translation_svc.translate(
-                text=recommendation_en,
-                target_language=target_language,
-                source_language="en",
-                method=translation_method,
-                model=model
-            )
+            for section_name, section_content in recommendation_sections.items():
+                if section_content:  # Only translate non-empty sections
+                    translation_result = translation_svc.translate(
+                        text=section_content,
+                        target_language=target_language,
+                        source_language="en",
+                        method=translation_method,
+                        model=model
+                    )
+                    translated_sections[section_name] = translation_result["translated_text"]
+                else:
+                    translated_sections[section_name] = section_content
             
-            result["recommendation"] = translation_result["translated_text"]
+            result["recommendation_sections"] = translated_sections
             result["original_language"] = "en"
             result["target_language"] = target_language
             result["translation_method"] = translation_method
             
-            # Include original English recommendation for debugging
-            result["recommendation_in_english"] = recommendation_en
+            # Include original English sections for debugging
+            result["recommendation_sections_english"] = recommendation_sections
         
         return jsonify(result)
     
@@ -317,26 +324,31 @@ def combined_diagnosis():
                 restructured_results["message"] = "No acne detected to generate recommendations"
                 return jsonify(restructured_results)
             
-            # Generate recommendations based on detected acne types in English
-            recommendation_en = process_diagnosis(acne_types, user_info, model=model)
+            # Generate recommendations based on detected acne types in English with thinking_budget=0
+            recommendation_sections = process_diagnosis(acne_types, user_info, model=model, thinking_budget=0)
             
             # Initialize translation info
             translation_info = {"original_language": "en", "target_language": "en"}
             
-            # Translate recommendation if needed
-            recommendation = recommendation_en
+            # Translate each section if needed
             if target_language != "en":
                 translation_svc = TranslationService()
+                translated_sections = {}
                 
-                translation_result = translation_svc.translate(
-                    text=recommendation_en,
-                    target_language=target_language,
-                    source_language="en",
-                    method=translation_method,
-                    model=model
-                )
+                for section_name, section_content in recommendation_sections.items():
+                    if section_content:  # Only translate non-empty sections
+                        translation_result = translation_svc.translate(
+                            text=section_content,
+                            target_language=target_language,
+                            source_language="en",
+                            method=translation_method,
+                            model=model
+                        )
+                        translated_sections[section_name] = translation_result["translated_text"]
+                    else:
+                        translated_sections[section_name] = section_content
                 
-                recommendation = translation_result["translated_text"]
+                recommendation_sections = translated_sections
                 translation_info = {
                     "original_language": "en",
                     "target_language": target_language,
@@ -352,13 +364,9 @@ def combined_diagnosis():
                 **metadata,
                 **translation_info,
                 "acne_types": acne_types,
-                "recommendation": recommendation,
-                "format": "markdown"
+                "recommendation_sections": recommendation_sections,
+                "format": "structured"
             }
-            
-            # Add English recommendation for debugging if translated
-            if target_language != "en":
-                combined_results["recommendation_in_english"] = recommendation_en
             
             return jsonify(combined_results)
             

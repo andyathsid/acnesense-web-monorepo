@@ -190,7 +190,11 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ question: message })
+          body: JSON.stringify({ 
+            question: message,
+            target_language: "id",
+            translation_method: "google" 
+          })
         });
         const data = await response.json();
 
@@ -225,7 +229,11 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ question: message })
+          body: JSON.stringify({ 
+            question: message,
+            target_language: "id",
+            translation_method: "llm" 
+          })
         });
         const data = await response.json();
 
