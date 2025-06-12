@@ -46,7 +46,7 @@ class Config:
     RESULTS_DIR = os.getenv('RESULTS_DIR', 'instance/results')
     
     # ML models paths
-    DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/yolo_v1.tflite')
+    DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/yolo_v2.tflite')
     CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/cnn_v1.tflite')
     CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')
     
@@ -56,4 +56,4 @@ class Config:
     QDRANT_URL = os.getenv('QDRANT_URL', 'http://localhost:6333')
     QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
     QDRANT_COLLECTION_NAME = os.getenv('QDRANT_COLLECTION_NAME', 'acne_knowledge_base')
-    VERTEX_AI_EMBEDDING_MODEL = os.getenv('VERTEX_AI_EMBEDDING_MODEL', 'textembedding-gecko@003')
+    VERTEX_AI_EMBEDDING_MODEL = os.getenv('VERTEX_AI_EMBEDDING_MODEL', 'text-embedding-004')
