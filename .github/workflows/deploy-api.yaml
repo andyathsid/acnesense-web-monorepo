@@ -21,7 +21,6 @@ env:
     QDRANT_URL=${{ secrets.QDRANT_URL }},
     QDRANT_COLLECTION_NAME=acne_knowledge_base,
     VERTEX_AI_EMBEDDING_MODEL=text-embedding-004,
-    GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json,
 
 on:
   push:
