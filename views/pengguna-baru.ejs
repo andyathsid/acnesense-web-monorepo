@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengguna Baru - Form Input</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Include SweetAlert2 CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #E5F6E5, #C8E6C9);
+            font-family: 'Poppins', sans-serif; /* Apply Poppins font */
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        .input-focus:focus {
+            border-color: #4caf50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 overflow-hidden relative">
+
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full transition-transform transform hover:scale-105 duration-500 fade-in relative z-10">
+        <h4 class="text-2xl font-bold text-green-700 text-center mb-2">Selamat Datang, Pengguna Baru!</h4>
+        
+        <p class="text-center text-gray-600 mb-6">Silakan masukkan informasi kulit Anda untuk mendapatkan rekomendasi yang sesuai.</p>
+        
+        <form id="userSkinForm" method="POST" action="/update-skin-info">
+            <div class="mb-6">
+                <label for="skinType" class="block text-gray-700 font-bold mb-2">Jenis Kulit:</label>
+                <div class="relative">
+                    <select id="skinType" name="skinType" required class="block w-full input-focus border rounded-lg p-2">
+                        <option value="" disabled selected>Pilih jenis kulit</option>
+                        <option value="normal">Normal</option>
+                        <option value="kering">Kering</option>
+                        <option value="kombinasi">Kombinasi</option>
+                        <option value="sensitif">Sensitif</option>
+                        <option value="berminyak">Berminyak</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="skinTone" class="block text-gray-700 font-bold mb-2">Skin Tone:</label>
+                <div class="relative">
+                    <select id="skinTone" name="skinTone" required class="block w-full input-focus border rounded-lg p-2">
+                        <option value="" disabled selected>Pilih skin tone</option>
+                        <option value="terang">Terang</option>
+                        <option value="sedang">Sedang</option>
+                        <option value="gelap">Gelap</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full flex justify-center items-center bg-green-600 text-white font-semibold py-3 rounded-lg transition duration-300 hover:bg-green-700 hover:shadow-lg relative btn">
+                Submit
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-spin hidden absolute right-3" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                </svg>
+            </button>
+        </form>
+    </div>
+
+<script>
+    const form = document.querySelector('#userSkinForm');
+    const loader = document.querySelector('button svg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Prevent the default form submission behavior
+        loader.classList.remove('hidden'); // Show the loader spinner
+
+          const formData = new FormData(form);
+            const skinType = formData.get('skinType');
+            const skinTone = formData.get('skinTone');
+
+        // Debug log for pressing submit
+        console.log('Submitting with:', { skinType, skinTone });
+
+        // Validate static selections (note: these are always set in this case)
+        if (!skinType || !skinTone) {
+            loader.classList.add('hidden'); // Hide spinner if validation fails
+            Swal.fire({
+                icon: 'error',
+                title: 'Input Tidak Valid',
+                text: 'Pastikan semua field diisi!',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Set content type to JSON
+                },
+                body: JSON.stringify({ skinType, skinTone }), // Send static data as JSON
+            });
+            const result = await response.json();
+
+            loader.classList.add('hidden'); // Hide spinner after response received
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: result.message,
+                    confirmButtonText: 'Ok'
+                }).then(() => {
+                    window.location.href = '/dashboard'; // Redirect to dashboard on success
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: result.message,
+                    confirmButtonText: 'Coba Lagi'
+                });
+            }
+        } catch (error) {
+            loader.classList.add('hidden'); // Hide spinner in case of error
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan!',
+                text: 'Tidak dapat memproses permintaan. Silakan coba lagi.',
+                confirmButtonText: 'Ok'
+            });
+        }
+    });
+</script>
+</body>
+</html>

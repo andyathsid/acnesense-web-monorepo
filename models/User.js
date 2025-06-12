@@ -191,6 +191,25 @@ class User {
             return false;
         }
     }
+    static async updateProfile(id, updates) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Profile update error:', error);
+        throw error;
+    }
+}
 }
 
 module.exports = User;
