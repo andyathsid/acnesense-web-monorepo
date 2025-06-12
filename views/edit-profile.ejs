@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>AcneSense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    <style>
+        body, html {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+            font-family: "Manrope", sans-serif;
+            height: 100%; /* Memastikan body mencakup seluruh tinggi viewport */
+        }
+        .header-font {
+            font-family: 'poppins', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+        }
+        .header-desktop-font {
+            font-family: 'poppins', sans-serif;
+            font-weight: 600;
+            font-size: 24px;
+        }
+        .title-font {
+            font-weight: 800;
+            font-size: 1.75rem; /* 28px approx */
+            user-select: none;
+        }
+        .accent-green {
+            color: #40c057;
+        }
+        .sub-title-font {
+            font-family: "Maven Pro", sans-serif;
+            font-weight: 500;
+            font-size: 0.875rem; /* 14px */
+            user-select: none;
+        }
+        .icon-style {
+            font-size: 1.25rem;
+        }
+        /* Rounded corner style for each button (similar radius on top-left) */
+        .btn-rounded {
+            border-top-left-radius: 1rem;
+        }
+        /* Agar ringan dalam scroll */
+        .scrollable {
+            overflow-y: auto; /* Menampilkan scroll saat konten melebihi tinggi */
+            height: calc(100vh - 80px); /* Menyesuaikan dengan tinggi viewport */
+        }
+    </style>
+</head>
+<body>
+<!-- Tampilan HP -->
+<div class="block md:hidden h-screen bg-white relative flex flex-col">
+    <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center">
+        <button aria-label="Back" class="mr-5 text-black select-none">
+            <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
+        </button>
+        <h1 class="text-black header-font select-none">Edit Profile</h1>
+    </header>
+
+    <main class="flex flex-1 items-center justify-center bg-white scrollable">
+        <form class="bg-white rounded-xl w-full max-w-md p-6 space-y-6" style="box-shadow: 0 0 10px rgba(0,0,0,0.25);">
+            <div>
+                <label for="name" class="block mb-1 font-semibold text-sm text-black select-none">Nama Lengkap</label>
+                <input id="name" value="Fahmi Nursafaat" type="text" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            </div>
+            <div>
+                <label for="email" class="block mb-1 font-semibold text-sm text-black select-none">Email</label>
+                <input id="email" value="fahminursafaat@gmail.com" type="email" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            </div>
+            <div>
+                <label for="birthdate" class="block mb-1 font-semibold text-sm text-black select-none">Tanggal Lahir</label>
+                <input id="birthdate" value="08-04-2003" type="text" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            </div>
+            <div>
+                <label for="profile-photo" class="block mb-1 font-semibold text-sm text-black select-none">Foto Profile</label>
+                <input id="profile-photo" type="file" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            </div>
+            
+            <!-- Dropdown untuk Skin Tone -->
+            <div>
+                <label for="skinTone" class="block mb-1 font-semibold text-sm">Skin Tone</label>
+                <select id="skinTone" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="" disabled selected>Pilih skin tone</option>
+                    <option value="terang">Terang</option>
+                    <option value="sedang">Sedang</option>
+                    <option value="gelap">Gelap</option>
+                </select>
+            </div>
+
+            <!-- Dropdown untuk Jenis Kulit -->
+            <div>
+                <label for="skinType" class="block mb-1 font-semibold text-sm">Jenis Kulit</label>
+                <select id="skinType" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="" disabled selected>Pilih jenis kulit</option>
+                    <option value="normal">Normal</option>
+                    <option value="kering">Kering</option>
+                    <option value="kombinasi">Kombinasi</option>
+                    <option value="sensitif">Sensitif</option>
+                    <option value="berminyak">Berminyak</option>
+                </select>
+            </div>
+
+            <!-- Buttons Batal and Simpan -->
+            <div class="flex justify-between space-x-4 pt-4">
+                <button type="button" class="flex items-center justify-center gap-2 w-1/2 px-4 py-2 border border-gray-400 rounded-md font-semibold text-gray-700 hover:bg-gray-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                    Batal
+                </button>
+                <button type="submit" class="flex items-center justify-center gap-2 w-1/2 px-4 py-2 bg-green-600 rounded-md font-semibold text-white hover:bg-green-700 transition">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<!-- Desktop/Tablet version -->
+<div class="hidden md:flex w-full h-screen mx-auto bg-[#D6EBD5] rounded-2xl overflow-hidden">
+    <div class="flex flex-1 items-center justify-center" style="margin: 0 20px;">
+        <div class="bg-white w-full max-w-7xl rounded-2xl p-5 flex desktop-container">
+            <!-- Left Panel -->
+            <%- include('templates/menu-desktop.ejs'); %>
+
+            <!-- Right Panel -->
+            <div class="w-2/3 desktop-right-panel rounded-r-2xl overflow-hidden">
+                <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none flex-shrink-0">
+                    <h2 class="header-desktop-font text-white">Edit Profile</h2>
+                    <a href="/profile">
+                        <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+                            <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full object-cover" />
+                        </div>
+                    </a>
+                </header>
+
+                <div class="p-10 scrollable">
+                    <form class="flex-1 flex flex-col justify-start space-y-6 mt-6 text-black">
+                        <div>
+                            <label for="name" class="block mb-1 font-semibold text-sm">Nama Lengkap</label>
+                            <input id="name" value="Fahmi Nursafaat" type="text" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="email" class="block mb-1 font-semibold text-sm">Email</label>
+                            <input id="email" value="fahminursafaat@gmail.com" type="email" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="birthdate" class="block mb-1 font-semibold text-sm">Tanggal Lahir</label>
+                            <input id="birthdate" value="08-04-2003" type="text" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="profile-photo" class="block mb-1 font-semibold text-sm">Foto Profile</label>
+                            <input id="profile-photo" type="file" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="" />
+                        </div>
+                        <div>
+                            <label for="skinTone" class="block mb-1 font-semibold text-sm">Skin Tone</label>
+                            <select id="skinTone" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="" disabled selected>Pilih skin tone</option>
+                                <option value="terang">Terang</option>
+                                <option value="sedang">Sedang</option>
+                                <option value="gelap">Gelap</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="skinType" class="block mb-1 font-semibold text-sm">Jenis Kulit</label>
+                            <select id="skinType" class="w-full rounded-md border border-gray-400 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="" disabled selected>Pilih jenis kulit</option>
+                                <option value="normal">Normal</option>
+                                <option value="kering">Kering</option>
+                                <option value="kombinasi">Kombinasi</option>
+                                <option value="sensitif">Sensitif</option>
+                                <option value="berminyak">Berminyak</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Buttons Batal and Simpan -->
+                        <div class="flex justify-start space-x-4 pt-4">
+                            <button type="button" class="flex items-center justify-center gap-2 px-6 py-2 border border-gray-400 rounded-md font-semibold text-gray-700 hover:bg-gray-100 transition">
+                                <i class="fa-solid fa-xmark"></i>
+                                Batal
+                            </button>
+                            <button type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-600 rounded-md font-semibold text-white hover:bg-green-700 transition">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
