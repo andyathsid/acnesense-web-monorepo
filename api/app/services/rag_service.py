@@ -128,15 +128,30 @@ def get_vector_store():
         )
     return _vector_store
 
-def get_llm():
-    """Get or initialize ChatVertexAI"""
+def get_llm(thinking_budget: Optional[int] = None):
+    """Get or initialize ChatVertexAI with optional thinking_budget override"""
     global _llm
+    
+    # If a specific thinking_budget is requested, create a new instance
+    if thinking_budget is not None:
+        return ChatVertexAI(
+            model_name=current_app.config['GEMINI_MODEL'],
+            project=current_app.config['PROJECT_ID'],
+            location=current_app.config['GEMINI_LOCATION'],
+            max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 2048),
+            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+            top_p=current_app.config.get('LLM_TOP_P', 0.8),
+            top_k=current_app.config.get('LLM_TOP_K', 40),
+            thinking_budget=thinking_budget
+        )
+    
+    # Otherwise, use the cached instance with default thinking_budget=0
     if _llm is None:
         _llm = ChatVertexAI(
             model_name=current_app.config['GEMINI_MODEL'],
             project=current_app.config['PROJECT_ID'],
             location=current_app.config['GEMINI_LOCATION'],
-            max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 2048),
+            max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
             temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
             top_p=current_app.config.get('LLM_TOP_P', 0.8),
             top_k=current_app.config.get('LLM_TOP_K', 40),
@@ -169,12 +184,12 @@ def format_docs_for_context(docs: List[Document]) -> str:
     """Format retrieved documents into context string"""
     return "\n\n".join([doc.page_content for doc in docs])
 
-def answer_question(query: str, model: str = None, num_results: int = 5) -> str:
+def answer_question(query: str, model: str = None, num_results: int = 5, thinking_budget: Optional[int] = None) -> str:
     """Answer a question using RAG with Langchain"""
     try:
         # Get retriever and LLM
         retriever = get_retriever(num_results=num_results)
-        llm = get_llm()
+        llm = get_llm(thinking_budget=thinking_budget)
         
         # Create prompt template
         prompt = ChatPromptTemplate.from_template(QA_TEMPLATE)
@@ -222,7 +237,7 @@ def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[st
         current_app.logger.error(f"Error in evaluate_relevance: {str(e)}")
         return {"Relevance": "UNKNOWN", "Explanation": f"Error: {str(e)}"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None) -> str:
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None, thinking_budget: Optional[int] = None) -> str:
     """Process diagnosis results and provide recommendations using RAG"""
     try:
         # Build patient profile
@@ -259,7 +274,7 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
         acne_info = "\n\n".join(acne_info_parts)
         
         # Create diagnosis chain
-        llm = get_llm()
+        llm = get_llm(thinking_budget=thinking_budget)
         prompt = ChatPromptTemplate.from_template(DIAGNOSIS_TEMPLATE)
         
         diagnosis_chain = prompt | llm | StrOutputParser()
@@ -278,7 +293,7 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
 
 def rag(query: str, target_language: str = "en", 
         translation_method: str = "google", 
-        model: str = None) -> Dict[str, Any]:
+        model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, Any]:
     """
     Multilingual RAG function to handle queries in any language
     
@@ -287,6 +302,7 @@ def rag(query: str, target_language: str = "en",
         target_language: Language to return answer in (default: "en")
         translation_method: Translation method ("google", "llm", "both")
         model: LLM model to use (default: from configuration)
+        thinking_budget: Thinking budget for the LLM (default: None, uses cached instance with 0)
         
     Returns:
         Dictionary with answer and metadata
@@ -316,7 +332,7 @@ def rag(query: str, target_language: str = "en",
         query = query_translation["translated_text"]
     
     # Step 2: Process the query with English RAG
-    answer_in_english = answer_question(query, model=model)
+    answer_in_english = answer_question(query, model=model, thinking_budget=thinking_budget)
     
     # Step 3: Translate answer back to target language if needed
     final_answer = answer_in_english

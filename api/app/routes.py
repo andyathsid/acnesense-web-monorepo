@@ -36,12 +36,13 @@ def handle_question():
         # Generate a unique conversation ID
         conversation_id = str(uuid.uuid4())
         
-        # Use multilingual RAG with specified parameters
+        # Use multilingual RAG with specified parameters and thinking budget for questions
         answer_data = rag(
             query=question,
             target_language=target_language,
             translation_method=translation_method,
-            model=model
+            model=model,
+            thinking_budget=256  # Allow some thinking for question answering
         )
         
         # Format result with language information
@@ -317,8 +318,8 @@ def combined_diagnosis():
                 restructured_results["message"] = "No acne detected to generate recommendations"
                 return jsonify(restructured_results)
             
-            # Generate recommendations based on detected acne types in English
-            recommendation_en = process_diagnosis(acne_types, user_info, model=model)
+            # Generate recommendations based on detected acne types in English with thinking_budget=0
+            recommendation_en = process_diagnosis(acne_types, user_info, model=model, thinking_budget=0)
             
             # Initialize translation info
             translation_info = {"original_language": "en", "target_language": "en"}
