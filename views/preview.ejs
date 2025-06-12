@@ -291,11 +291,7 @@ async function startCheck() {
     console.log('Sending image data length:', capturedImageData.length);
 
     try {
-<<<<<<< HEAD
         const response = await fetch('<%= API_BASE_URL %>/combined-diagnosis', {
-=======
-        const response = await fetch('http://localhost:5000/combined-diagnosis', {
->>>>>>> temp-branch
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
