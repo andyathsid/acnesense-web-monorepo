@@ -129,73 +129,79 @@ router.post('/register', async (req, res) => {
 });
 
 // Login route
+// Login route
+// Login route
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.json({
-        success: false,
-        message: 'Email dan password harus diisi!'
-      });
+        if (!email || !password) {
+            return res.json({
+                success: false,
+                message: 'Email dan password harus diisi!'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.json({
+                success: false,
+                message: 'Format email tidak valid!'
+            });
+        }
+
+        // Sign in with Supabase Auth
+        const { user, session, error } = await User.signIn(email, password);
+
+        if (error || !user || !session) {
+            console.error('Sign in error:', error); // Debugging log
+            return res.json({
+                success: false,
+                message: 'Email atau password salah!'
+            });
+        }
+
+        // Get user profile
+        const profile = await User.findById(user.id);
+        if (!profile) {
+            console.error('Profile not found for user ID:', user.id); // Debugging log
+            return res.json({
+                success: false,
+                message: 'Profil pengguna tidak ditemukan!'
+            });
+        }
+
+        // Set HTTP-only cookie for the token
+        res.cookie('access_token', session.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
+        console.log(`User logged in: ${user.email} at ${new Date()}`);
+
+        // Send user data and redirect URL based on status
+        return res.json({
+            success: true,
+            message: 'Login berhasil!',
+            user: { // Send user data
+                id: user.id,
+                email: user.email,
+                name: profile.nama,
+                status: profile.status, // Add status here
+                age: profile.umur // If necessary
+            },
+            redirectUrl: profile.status === 'baru' ? '/pengguna-baru' : '/dashboard'
+        });
+
+    } catch (error) {
+        console.error('Login error:', error); // Debugging log
+        res.json({
+            success: false,
+            message: 'Gagal memproses permintaan login.'
+        });
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.json({
-        success: false,
-        message: 'Format email tidak valid!'
-      });
-    }
-
-    // Sign in with Supabase Auth
-    const { user, session } = await User.signIn(email, password);
-
-    if (!user || !session) {
-      return res.json({
-        success: false,
-        message: 'Email atau password salah!'
-      });
-    }
-
-    // Get user profile
-    const profile = await User.findById(user.id);
-    if (!profile) {
-      return res.json({
-        success: false,
-        message: 'Profil pengguna tidak ditemukan!'
-      });
-    }
-
-    // Set HTTP-only cookie for token
-    res.cookie('access_token', session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
-
-    console.log(`User logged in: ${user.email} at ${new Date()}`);
-    
-    res.json({
-      success: true,
-      message: 'Login berhasil!',
-      user: {
-        id: user.id,
-        name: profile.nama,
-        email: user.email,
-        age: profile.umur
-      },
-      token: session.access_token
-    });
-
-  } catch (error) {
-    console.error('Login error:', error);
-    res.json({
-      success: false,
-      message: 'Email atau password salah!'
-    });
-  }
 });
 
 // Logout route
@@ -222,6 +228,71 @@ router.post('/logout', requireAuth, async (req, res) => {
     });
   }
 });
+
+router.get('/pengguna-baru', requireAuth, async (req, res) => {
+    try {
+        // Fetch the user's profile
+        const userProfile = await User.findById(req.user.id);
+
+        // Check if there is existing data for jenis_kulit and skin_tone
+        if (userProfile && userProfile.jenis_kulit && userProfile.skin_tone) {
+            // Redirect to dashboard if data exists
+            return res.redirect('/dashboard');
+        }
+
+        // Render the pengguna-baru view
+        res.render('pengguna-baru', {
+            user: req.user // Pass the user information to the view if needed
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.redirect('/login'); // Redirect in case of an error
+    }
+});
+// Add this route to handle skin info updates
+router.post('/update-skin-info', requireAuth, async (req, res) => {
+    console.log('Incoming request body:', req.body); // Log the incoming request body
+    const { skinType, skinTone } = req.body; // This should now correctly read the values
+    console.log('Update skin info:', { skinType, skinTone });
+
+    // Validate the input
+    if (!skinType || !skinTone) {
+        return res.json({
+            success: false,
+            message: 'Semua field harus diisi!'
+        });
+    }
+
+    // Assume update function is implemented correctly
+    const updates = {
+        jenis_kulit: skinType,
+        skin_tone: skinTone,
+        status: 'lama' // Update status to 'lama'
+    };
+
+    try {
+        const updatedProfile = await User.updateProfile(req.user.id, updates);
+
+        if (!updatedProfile) {
+            return res.json({
+                success: false,
+                message: 'Gagal memperbarui informasi pengguna!'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Informasi berhasil diperbarui!',
+        });
+    } catch (error) {
+        console.error('Update skin info error:', error);
+        res.json({
+            success: false,
+            message: 'Terjadi kesalahan saat memperbarui informasi!',
+        });
+    }
+});
+
 
 // Protected routes
 router.get('/dashboard', requireAuth, async (req, res) => {
@@ -250,6 +321,8 @@ router.get('/deteksi', requireAuth, async (req, res) => {
     res.redirect('/login');
   }
 });
+
+
 
 router.get('/preview', requireAuth, async (req, res) => {
   try {

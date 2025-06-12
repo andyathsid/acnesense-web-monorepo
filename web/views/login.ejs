@@ -267,65 +267,76 @@
       });
 
       // Handle form submission for both mobile and desktop
-      function handleLogin(form) {
-        form.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          const formData = new FormData(form);
-          const loginData = {
+      // Handle form submission for both mobile and desktop
+// Handle form submission for both mobile and desktop
+function handleLogin(form) {
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const loginData = {
             email: formData.get('email'),
             password: formData.get('password')
-          };
+        };
 
-          // Show loading
-          Swal.fire({
+        // Show loading
+        Swal.fire({
             title: 'Login...',
             text: 'Mohon tunggu sebentar',
             allowOutsideClick: false,
             showConfirmButton: false,
             willOpen: () => {
-              Swal.showLoading();
+                Swal.showLoading();
             }
-          });
+        });
 
-          try {
+        try {
             const response = await fetch('/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(loginData)
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
             });
 
             const result = await response.json();
 
+            console.log('Login Result:', result); // Debugging log
+
             if (result.success) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Login Berhasil!',
-                text: result.message,
-                timer: 1500,
-                showConfirmButton: false
-              }).then(() => {
-                window.location.href = '/dashboard';
-              });
+                // Check for redirect URL
+                console.log('User found with status:', result.user.status); // Debugging log
+                if (result.redirectUrl) {
+                    console.log('Redirecting to:', result.redirectUrl); // Debugging log
+                    window.location.href = result.redirectUrl; // Redirect to corresponding URL
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Login Berhasil!',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '/dashboard'; // Fallback redirect
+                    });
+                }
             } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Login Gagal!',
-                text: result.message
-              });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal!',
+                    text: result.message
+                });
             }
-          } catch (error) {
-            console.error('Error:', error);
+        } catch (error) {
+            console.error('Error during login:', error); // Debugging log
             Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Terjadi kesalahan pada server'
+                icon: 'error',
+                title: 'Error!',
+                text: 'Terjadi kesalahan pada server'
             });
-          }
-        });
-      }
+        }
+    });
+}
 
       // Apply to both forms
       handleLogin(document.getElementById('loginFormMobile'));
