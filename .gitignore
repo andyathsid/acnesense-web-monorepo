@@ -187,3 +187,8 @@ ehthumbs.db
 Desktop.ini
 
 service-account-key.json
+
+# Qdrant storage directories
+api/qdrant_storage/
+api/qdrant_storage_dev/
+qdrant_storage_main/

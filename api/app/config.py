@@ -19,15 +19,18 @@ class Config:
     FAQS_PATH = os.getenv('FAQS_PATH', 'data/knowledge-base/faqs.csv')
     
     # LLM configuration
-    model_name = os.getenv('DEFAULT_MODEL', 'default') 
-    DEFAULT_MODEL = model_name
+    DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'gemini-2.5-flash-preview-05-20')
     
     # Extract project and endpoint IDs from environment variables
     PROJECT_ID = os.getenv('PROJECT_ID', '143761779858')
-    ENDPOINT_ID = os.getenv('ENDPOINT_ID', '2946528434718769152')
     REGION = os.getenv('REGION', 'asia-southeast1')
+    ENDPOINT_ID = os.getenv('ENDPOINT_ID', '2946528434718769152')
     
-    # Build the Vertex AI URL
+    # Gemini model settings
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-preview-05-20')
+    GEMINI_LOCATION = os.getenv('GEMINI_LOCATION', 'us-central1')
+    
+    # Build the Vertex AI URL 
     VLLM_API_URL = os.getenv('VLLM_API_URL', 
                         f"https://{REGION.strip()}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID.strip()}/locations/{REGION.strip()}/endpoints/{ENDPOINT_ID.strip()}")
     
@@ -48,3 +51,9 @@ class Config:
     CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')
     
     GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service-account-key.json')
+    
+    # Qdrant configuration
+    QDRANT_URL = os.getenv('QDRANT_URL', 'http://localhost:6333')
+    QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
+    QDRANT_COLLECTION_NAME = os.getenv('QDRANT_COLLECTION_NAME', 'acne_knowledge_base')
+    VERTEX_AI_EMBEDDING_MODEL = os.getenv('VERTEX_AI_EMBEDDING_MODEL', 'textembedding-gecko@003')

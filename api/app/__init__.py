@@ -11,9 +11,8 @@ def create_app(config_class=Config):
     # Initialize token cache
     initialize_token_cache(app)
     
-    # Initialize services
-    from app.utils.index_loader import load_index
-    app.index = load_index(app)
+    # Initialize services (old TF-IDF index removed, now using Qdrant vector store)
+    # Vector store initialization happens lazily in rag_service.py
     
     # Warm up models
     from app.utils.model_warmup import warm_up_diagnosis_models
