@@ -298,7 +298,9 @@ async function startCheck() {
             },
             body: JSON.stringify({
                 image: capturedImageData,
-                user_info: userInfo
+                user_info: userInfo,
+                target_language: "id",
+                translation_method: "google"
             })
         });
 
