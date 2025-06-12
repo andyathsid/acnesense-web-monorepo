@@ -192,3 +192,5 @@ service-account-key.json
 api/qdrant_storage/
 api/qdrant_storage_dev/
 qdrant_storage_main/
+
+merge-cheatsheet.md
