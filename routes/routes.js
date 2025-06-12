@@ -37,6 +37,9 @@ router.get('/register', requireGuest, (req, res) => {
   res.render('registrasi');
 });
 
+// router.get('/profile', requireGuest, (req, res) => {
+//   res.render('profile');
+// });
 // Registration route
 router.post('/register', async (req, res) => {
   try {
@@ -272,6 +275,26 @@ router.get('/chatbot', requireAuth, async (req, res) => {
   }
 });
 
+// router.get('/profile', requireAuth, async (req, res) => {
+//   res.render('profile');
+// });
+
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.redirect('/login'); // Redirect jika user tidak ditemukan
+    }
+
+    res.render('profile', {
+      user // Mengirim data pengguna ke EJS
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    res.redirect('/login'); // Redirect jika terjadi error
+  }
+});
+
 router.get('/riwayat', requireAuth, async (req, res) => {
   try {
     const riwayatData = await Riwayat.findByUserId(req.user.id);
@@ -289,6 +312,24 @@ router.get('/riwayat', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Riwayat error:', error);
     res.redirect('/login');
+  }
+});
+
+// Edit profile route
+router.get('/edit-profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.redirect('/login'); // Redirect jika user tidak ditemukan
+    }
+
+    // Render halaman edit profile, kirimkan data pengguna ke EJS
+    res.render('edit-profile', {
+      user // Mengirim data pengguna untuk ditampilkan di form
+    });
+  } catch (error) {
+    console.error('Edit Profile error:', error);
+    res.redirect('/login'); // Redirect jika terjadi error
   }
 });
 
