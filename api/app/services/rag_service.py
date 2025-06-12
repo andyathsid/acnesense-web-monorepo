@@ -137,8 +137,9 @@ def get_llm():
             project=current_app.config['PROJECT_ID'],
             location=current_app.config['GEMINI_LOCATION'],
             max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 2048),
-            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+            temperature=current_app.config.get('LLM_TEMPERATURE', 0.5),
             top_p=current_app.config.get('LLM_TOP_P', 0.8),
+            top_k=current_app.config.get('LLM_TOP_K', 40),
             thinking_budget=0
         )
     return _llm
