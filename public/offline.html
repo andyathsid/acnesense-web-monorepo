@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #3b82f6, #a855f7);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 1em;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 1.25em;
+            margin-bottom: 2em;
+        }
+
+        .icon {
+            font-size: 3em;
+            margin-bottom: 1em;
+        }
+
+        img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        a {
+            display: inline-block;
+            background-color: white;
+            color: #3b82f6;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Anda sedang offline</h1>
+    <p>Koneksi tidak tersedia. Pastikan perangkat Anda terhubung ke jaringan.</p>
+    <img src="no-wifi.png" alt="Offline Image">
+    <a href="#" onclick="window.location.reload()">Coba Lagi</a>
+</body>
+</html>
