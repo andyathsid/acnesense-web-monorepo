@@ -433,48 +433,17 @@ router.post('/save-detection', requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Data tidak lengkap.' });
     }
 
-    // Handle both old format (recommendation) and new format (recommendation_sections)
-    let overview = '';
-    let recommendations = '';
-    let skincareTips = '';
-    let importantNotes = '';
-    
-    if (detectionData.recommendation_sections) {
-      // New structured format
-      const sections = detectionData.recommendation_sections;
-      overview = sections.overview ? `## OVERVIEW\n${sections.overview}` : '';
-      recommendations = sections.recommendations ? `## RECOMMENDATIONS\n\n${sections.recommendations}` : '';
-      skincareTips = sections.skincare_tips ? `## SKINCARE TIPS\n\n${sections.skincare_tips}` : '';
-      importantNotes = sections.important_notes ? `## IMPORTANT NOTES\n\n${sections.important_notes}` : '';
-    } else if (detectionData.recommendation) {
-      // Legacy format - try to parse markdown sections
-      const recommendationText = detectionData.recommendation;
-      const overviewMatch = recommendationText.split('## OVERVIEW');
-      if (overviewMatch.length > 1) {
-        const overviewSection = overviewMatch[1].split('## RECOMMENDATIONS')[0];
-        overview = `## OVERVIEW\n${overviewSection ? overviewSection.trim() : ''}`;
-      }
-      
-      const recommendationsMatch = recommendationText.split('## RECOMMENDATIONS');
-      if (recommendationsMatch.length > 1) {
-        const recommendationsSection = recommendationsMatch[1].split('## SKINCARE TIPS')[0];
-        recommendations = `## RECOMMENDATIONS\n\n${recommendationsSection ? recommendationsSection.trim() : ''}`;
-      }
-      
-      const skincareTipsMatch = recommendationText.split('## SKINCARE TIPS');
-      if (skincareTipsMatch.length > 1) {
-        const skincareTipsSection = skincareTipsMatch[1].split('## IMPORTANT NOTES')[0];
-        skincareTips = `## SKINCARE TIPS\n\n${skincareTipsSection ? skincareTipsSection.trim() : ''}`;
-      }
-      
-      const importantNotesMatch = recommendationText.split('## IMPORTANT NOTES');
-      if (importantNotesMatch.length > 1) {
-        importantNotes = `## IMPORTANT NOTES\n\n${importantNotesMatch[1] ? importantNotesMatch[1].trim() : ''}`;
-      }
-    } else {
-      // Fallback if neither format is available
+    // Check for recommendation_sections 
+    if (!detectionData.recommendation_sections) {
       return res.status(400).json({ success: false, message: 'Data rekomendasi tidak tersedia.' });
     }
+
+    // Extract sections from structured format
+    const sections = detectionData.recommendation_sections;
+    const overview = sections.overview ? `${sections.overview}` : '';
+    const recommendations = sections.recommendations ? `${sections.recommendations}` : '';
+    const skincareTips = sections.skincare_tips ? `${sections.skincare_tips}` : '';
+    const importantNotes = sections.important_notes ? `${sections.important_notes}` : '';
     
     const userId = req.user.id;
     const acneTypes = detectionData.acne_types;
