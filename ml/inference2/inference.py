@@ -329,7 +329,7 @@ class JerawatPipeline:
 
 if __name__ == "__main__":
     pipeline = JerawatPipeline(
-        deteksi_model_path="model/deteksi/best_float32.tflite",  # path TFLite baru
+        deteksi_model_path="model/deteksi/model.tflite",  # path TFLite baru
         klasifikasi_model_path="model/klasifikasi/model.tflite",
         class_index_path="class_indices.json"
     )
