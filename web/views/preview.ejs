@@ -282,9 +282,9 @@ async function startCheck() {
     });
 
     const userInfo = {
-        age: <%= user.umur || 0 %>,
-        skin_type: "<%= user.jenis_kulit || 'unknown' %>",
-        skin_tone: "<%= user.skin_tone || 'unknown' %>"
+        age: <%- JSON.stringify(user.umur || 0) %>,
+        skin_type: <%- JSON.stringify(user.jenis_kulit || 'unknown') %>,
+        skin_tone: <%- JSON.stringify(user.skin_tone || 'unknown') %>
     };
 
     console.log('User info:', userInfo);
@@ -300,7 +300,7 @@ async function startCheck() {
                 image: capturedImageData,
                 user_info: userInfo,
                 target_language: "id",
-                translation_method: "google"
+                translation_method: "llm"
             })
         });
 
@@ -325,20 +325,22 @@ async function startCheck() {
         }
 
         // If acne detected, save to database
+        const payloadForSaveDetection = {
+            detection_count: data.detection_count,
+            acne_types: data.acne_types,
+            classification_results: data.classification_results,
+            detection_classes: data.detection_classes,
+            captured_image: capturedImageData,
+            recommendation_sections: data.recommendation_sections,
+            detection_result: data.detection_result
+        };
+
         const saveResponse = await fetch('/save-detection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                detection_count: data.detection_count,
-                acne_types: data.acne_types,
-                classification_results: data.classification_results,
-                detection_classes: data.detection_classes,
-                captured_image: capturedImageData,
-                recommendation: data.recommendation,
-                detection_result: data.detection_result
-            })
+            body: JSON.stringify(payloadForSaveDetection)
         });
 
         if (!saveResponse.ok) {
