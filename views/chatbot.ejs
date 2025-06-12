@@ -232,7 +232,7 @@
           body: JSON.stringify({ 
             question: message,
             target_language: "id",
-            translation_method: "google" 
+            translation_method: "llm" 
           })
         });
         const data = await response.json();
