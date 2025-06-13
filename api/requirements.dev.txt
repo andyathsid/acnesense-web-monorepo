@@ -16,3 +16,8 @@ requests
 google-auth-oauthlib
 deep_translator
 langdetect
+langchain
+langchain-google-vertexai
+langchain-core
+qdrant-client
+langchain-qdrant

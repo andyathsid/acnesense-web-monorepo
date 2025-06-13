@@ -8,8 +8,12 @@ env:
   
   # Common environment variables for all deployments
   COMMON_ENV_VARS: >-
-    NODE_ENV=production,
-    API_BASE_URL=https://acne-sense-api-nr5s2obcca-as.a.run.app
+    NODE_ENV=production
+  
+  # Environment-specific API URLs
+  PROD_API_URL: https://acne-sense-api-143761779858.asia-southeast1.run.app
+  STAGING_API_URL: https://acne-sense-api-staging-143761779858.asia-southeast1.run.app
+  WEB_STAGING_API_URL: https://acne-sense-api-api-staging-143761779858.asia-southeast1.run.app
 
 on:
   push:
@@ -114,11 +118,11 @@ jobs:
         run: |
           # Set environment-specific variables
           if [[ "${{ env.DEPLOY_ENV }}" == "staging" ]]; then
-            ENV_VARS="${{ env.COMMON_ENV_VARS }},NODE_ENV=staging"
+            ENV_VARS="${{ env.COMMON_ENV_VARS }},API_BASE_URL=${{ env.STAGING_API_URL }}"
           elif [[ "${{ env.DEPLOY_ENV }}" == "web-staging" ]]; then
-            ENV_VARS="${{ env.COMMON_ENV_VARS }},NODE_ENV=web-staging"
+            ENV_VARS="${{ env.COMMON_ENV_VARS }},API_BASE_URL=${{ env.WEB_STAGING_API_URL }}"
           else
-            ENV_VARS="${{ env.COMMON_ENV_VARS }}"
+            ENV_VARS="${{ env.COMMON_ENV_VARS }},API_BASE_URL=${{ env.PROD_API_URL }}"
           fi
           
           echo "DEPLOYMENT_ENV_VARS=${ENV_VARS}" >> $GITHUB_ENV

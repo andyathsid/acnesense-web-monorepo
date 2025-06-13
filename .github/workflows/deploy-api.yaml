@@ -15,7 +15,12 @@ env:
     REGION=asia-southeast1,
     ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv,
     FAQS_PATH=data/knowledge-base/faqs.csv,
-    DEFAULT_MODEL='default',
+    DEFAULT_MODEL=gemini-2.5-flash-preview-05-20,
+    GEMINI_MODEL=gemini-2.5-flash-preview-05-20,
+    GEMINI_LOCATION=us-central1,
+    QDRANT_URL=${{ secrets.QDRANT_URL }},
+    QDRANT_COLLECTION_NAME=acne_knowledge_base,
+    VERTEX_AI_EMBEDDING_MODEL=text-embedding-004,
 
 on:
   push:
@@ -153,7 +158,7 @@ jobs:
             --cpu 2 \
             --port 8000 \
             --set-env-vars="${ENV_VARS}" \
-            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,ENDPOINT_ID=acne-sense-endpoint-id:latest,MODEL_ID=acne-sense-model-id:latest" \
+            --update-secrets="SUPABASE_URL=acne-sense-supabase-url:latest,SUPABASE_KEY=acne-sense-supabase-key:latest,QDRANT_API_KEY=qdrant-api-key:latest" \
             --service-account acne-sense-sa@acne-sense.iam.gserviceaccount.com \
             $( [[ "${{ github.event_name }}" == "pull_request" ]] && echo "--tag pr-${{ github.event.number }}" || echo "" )
 

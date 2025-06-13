@@ -1,0 +1,17 @@
+{
+  "js/deteksi.js": {
+    "file": "assets/deteksi-C-aYN846.js",
+    "name": "deteksi",
+    "src": "js/deteksi.js",
+    "isEntry": true
+  },
+  "js/main.js": {
+    "file": "assets/main-ALDFTo6m.js",
+    "name": "main",
+    "src": "js/main.js",
+    "isEntry": true,
+    "css": [
+      "assets/main-CjBfZM1W.css"
+    ]
+  }
+}

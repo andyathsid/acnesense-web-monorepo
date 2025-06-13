@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>AcneSense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <style>
+        body,
+        html {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+            font-family: "Manrope", sans-serif;
+        }
+        .header-font {
+            font-family: "poppins", sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+        }
+        .header-desktop-font {
+            font-family: "poppins", sans-serif;
+            font-weight: 600;
+            font-size: 24px;
+        }
+        .title-font {
+            font-weight: 800;
+            font-size: 1.75rem; /* 28px approx */
+            user-select: none;
+        }
+        .accent-green {
+            color: #40c057;
+        }
+        .sub-title-font {
+            font-family: "Maven Pro", sans-serif;
+            font-weight: 500;
+            font-size: 0.875rem; /* 14px */
+            user-select: none;
+        }
+        .icon-style {
+            font-size: 1.25rem;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        /* Media queries for desktop styles */
+        @media (min-width: 768px) {
+            .desktop-container {
+                max-height: 85vh;
+                height: 85vh;
+            }
+            .desktop-right-panel {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            .desktop-right-content {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            .desktop-left-panel {
+                overflow-y: auto;
+                max-height: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Mobile Version -->
+    <div class="block md:hidden h-screen bg-white relative flex flex-col">
+        <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <button aria-label="Back" class="mr-5 text-black select-none" onclick="goBack()">
+                    <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px"></i>
+                </button>
+                <h1 class="text-black header-font select-none">Preview</h1>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6 bg-white overflow-y-auto relative">
+            <!-- Camera Preview -->
+            <div class="rounded-lg mb-6 overflow-hidden">
+                <img id="previewImage" src="" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" style="min-height: 200px; background-color: #f3f4f6;" />
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-4">
+                <button class="flex-1 bg-orange-400 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-500 transition-colors"
+                    onclick="retakePhoto()">Foto Ulang</button>
+                <button id="startCheckBtn" class="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                    onclick="startCheck()" disabled>Mulai Periksa</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Desktop Version -->
+    <div class="hidden md:flex w-full h-screen mx-auto bg-[#D6EBD5] rounded-2xl overflow-hidden">
+        <div class="flex flex-1 items-center justify-center" style="margin: 0 20px">
+            <div class="bg-white w-full max-w-7xl rounded-2xl p-5 flex desktop-container">
+                <!-- Left Panel -->
+                <%- include('templates/menu-desktop.ejs'); %>
+
+                <!-- Right Panel -->
+                <div class="w-2/3 desktop-right-panel rounded-r-2xl overflow-hidden">
+                    <header class="bg-[#6A9E61] p-6 flex items-center justify-between select-none flex-shrink-0">
+                        <h2 class="header-desktop-font text-white">Preview</h2>
+                        <a href="/profile">
+                            <div class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+                                <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar"
+                                    class="w-full h-full object-cover" />
+                            </div>
+                        </a>
+                    </header>
+
+                    <div class="desktop-right-content p-10 custom-scrollbar bg-gray-200 relative">
+                        <div class="flex flex-col items-center">
+                            <!-- Camera Preview -->
+                            <div class="w-full max-w-md rounded-lg mb-8 overflow-hidden relative">
+                                <img id="previewImageDesktop" src="" alt="Acne Preview" class="w-full h-auto rounded-lg object-cover" style="min-height: 300px; background-color: #f3f4f6;" />
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-6 w-full max-w-md">
+                                <button class="flex-1 bg-orange-400 text-white py-4 px-8 rounded-lg font-semibold hover:bg-orange-500 transition-colors text-lg"
+                                    onclick="retakePhoto()">Foto Ulang</button>
+                                <button id="startCheckBtnDesktop" class="flex-1 bg-green-500 text-white py-4 px-8 rounded-lg font-semibold hover:bg-green-600 transition-colors text-lg"
+                                    onclick="startCheck()" disabled>Mulai Periksa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/pendaftaran-sw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+let capturedImageData = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Get image from URL query parameter or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const imageFromUrl = urlParams.get('image');
+    const imageFromStorage = localStorage.getItem('capturedImage');
+    
+    // Use URL parameter first, then localStorage
+    capturedImageData = imageFromUrl || imageFromStorage;
+    
+    console.log('Image data source:', imageFromUrl ? 'URL parameter' : 'localStorage');
+    console.log('Image data length:', capturedImageData ? capturedImageData.length : 'No data');
+    
+    if (capturedImageData) {
+        // Validate base64 data
+        if (capturedImageData.startsWith('data:image/')) {
+            // Set image sources
+            const mobileImg = document.getElementById('previewImage');
+            const desktopImg = document.getElementById('previewImageDesktop');
+            
+            if (mobileImg) {
+                mobileImg.src = capturedImageData;
+                mobileImg.onload = () => {
+                    console.log('Mobile image loaded successfully');
+                    enableCheckButtons();
+                };
+                mobileImg.onerror = (e) => {
+                    console.error('Mobile image load error:', e);
+                    showImageError();
+                };
+            }
+            
+            if (desktopImg) {
+                desktopImg.src = capturedImageData;
+                desktopImg.onload = () => {
+                    console.log('Desktop image loaded successfully');
+                    enableCheckButtons();
+                };
+                desktopImg.onerror = (e) => {
+                    console.error('Desktop image load error:', e);
+                    showImageError();
+                };
+            }
+        } else {
+            console.error('Invalid image data format');
+            showImageError();
+        }
+    } else {
+        console.error('No image data found');
+        showNoImageError();
+    }
+});
+
+function enableCheckButtons() {
+    const startCheckBtn = document.getElementById('startCheckBtn');
+    const startCheckBtnDesktop = document.getElementById('startCheckBtnDesktop');
+    
+    if (startCheckBtn) {
+        startCheckBtn.disabled = false;
+        startCheckBtn.classList.remove('opacity-50');
+    }
+    if (startCheckBtnDesktop) {
+        startCheckBtnDesktop.disabled = false;
+        startCheckBtnDesktop.classList.remove('opacity-50');
+    }
+}
+
+function showImageError() {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error Memuat Gambar',
+        text: 'Gambar tidak dapat dimuat. Silakan ambil foto ulang.',
+        confirmButtonText: 'Foto Ulang'
+    }).then(() => {
+        retakePhoto();
+    });
+}
+
+function showNoImageError() {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Tidak Ada Gambar',
+        text: 'Tidak ada gambar yang tersedia. Silakan ambil foto terlebih dahulu.',
+        confirmButtonText: 'Ambil Foto'
+    }).then(() => {
+        retakePhoto();
+    });
+}
+
+function goBack() {
+    // Clear the image data and go back
+    localStorage.removeItem('capturedImage');
+    window.history.back();
+}
+
+function retakePhoto() {
+    // Clear the image data and redirect to detection page
+    localStorage.removeItem('capturedImage');
+    window.location.href = '/deteksi';
+}
+
+async function startCheck() {
+    if (!capturedImageData) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Tidak ada gambar untuk diperiksa. Silakan ambil foto terlebih dahulu.'
+        });
+        return;
+    }
+
+    // Show loading
+    const loadingSwal = Swal.fire({
+        title: 'Sedang memeriksa...',
+        html: 'Mohon tunggu, sistem sedang menganalisis gambar Anda...',
+        timer: 30000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+
+    const userInfo = {
+        age: <%- JSON.stringify(user.umur || 0) %>,
+        skin_type: <%- JSON.stringify(user.jenis_kulit || 'unknown') %>,
+        skin_tone: <%- JSON.stringify(user.skin_tone || 'unknown') %>
+    };
+
+    console.log('User info:', userInfo);
+    console.log('Sending image data length:', capturedImageData.length);
+
+    try {
+        const response = await fetch('<%= API_BASE_URL %>/combined-diagnosis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                image: capturedImageData,
+                user_info: userInfo,
+                target_language: "id",
+                translation_method: "llm"
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        Swal.close();
+
+        console.log('Diagnosis response:', data);
+
+        // Check if no acne detected
+        if (!data.detection_count || data.detection_count === 0) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Tidak ada jerawat terdeteksi',
+                text: data.message || 'Tidak ada jerawat yang terdeteksi pada gambar.',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        // If acne detected, save to database
+        const payloadForSaveDetection = {
+            detection_count: data.detection_count,
+            acne_types: data.acne_types,
+            classification_results: data.classification_results,
+            detection_classes: data.detection_classes,
+            captured_image: capturedImageData,
+            recommendation_sections: data.recommendation_sections,
+            detection_result: data.detection_result
+        };
+
+        const saveResponse = await fetch('/save-detection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payloadForSaveDetection)
+        });
+
+        if (!saveResponse.ok) {
+            throw new Error(`Save error! status: ${saveResponse.status}`);
+        }
+
+        const saveData = await saveResponse.json();
+
+        if (saveData.success) {
+            // Clear the image data from localStorage
+            localStorage.removeItem('capturedImage');
+            
+            // Redirect to results page
+            window.location.href = `/hasil/${saveData.id_riwayat}`;
+        } else {
+            throw new Error(saveData.message || 'Gagal menyimpan data');
+        }
+
+    } catch (error) {
+        console.error('Error during diagnosis:', error);
+        Swal.close();
+        
+        let errorMessage = 'Gagal melakukan pemeriksaan. ';
+        if (error.message.includes('fetch')) {
+            errorMessage += 'Pastikan koneksi internet stabil dan AI service berjalan.';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi kesalahan',
+            text: errorMessage,
+            confirmButtonText: 'Coba Lagi'
+        });
+    }
+}
+</script>
+</body>
+</html>

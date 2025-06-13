@@ -1,13 +1,40 @@
 import json
 import time
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from flask import current_app
-from openai import OpenAI
-from app.utils.auth_utils import get_access_token
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
+from langchain_core.documents import Document
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_qdrant import QdrantVectorStore
 from app.services.translation_service import TranslationService
 
-# Templates
+# Improved QA Template with better instructions
+QA_TEMPLATE = """You are an expert dermatology assistant for the Acne Sense app. Your primary goal is to provide accurate, compassionate, and helpful answers to user questions about acne.
+
+CONTEXT:
+{context}
+
+USER'S QUESTION: {question}
+
+INSTRUCTIONS:
+1.  Carefully read the USER'S QUESTION and the CONTEXT.
+2.  **Prioritize the CONTEXT**: If the CONTEXT contains information that directly and sufficiently answers the USER'S QUESTION, formulate your answer based *only* on that information.
+3.  **Use General Knowledge if Context is Insufficient**: If the CONTEXT does *not* contain relevant information, or if it's insufficient to fully answer the USER'S QUESTION, you may use your general dermatological knowledge to provide a helpful answer.
+    *   In such cases, clearly state that the information is general advice (e.g., "Generally, for sensitive skin..." or "While our specific knowledge base doesn't cover this, common advice includes...").
+    *   If you have no relevant information either from context or general knowledge, then respond with: "I'm sorry, but I don't have enough specific information to answer that question right now. It might be best to consult with a dermatologist for personalized advice."
+4.  **Professional Tone**: Present your answer in a compassionate, professional, and easy-to-understand manner.
+5.  **No Mention of "CONTEXT"**: Do not mention the word "CONTEXT" or "knowledge base" in your answer to the user.
+6.  **Details from Context**: If using context, use specific details from it, such as treatment recommendations, ingredients, or timelines.
+7.  **Multiple Options**: If multiple treatment options are mentioned (either in context or general knowledge), present them clearly.
+8.  **Safety First**: Always err on the side of caution. If the question involves a serious medical concern or requires a diagnosis, advise the user to consult a healthcare professional.
+
+ANSWER:"""
+
 DIAGNOSIS_TEMPLATE = """
 You are an expert dermatology assistant for the Acne Sense app.
 Create helpful recommendations based on the PATIENT PROFILE and ACNE INFORMATION provided.
@@ -47,20 +74,7 @@ PATIENT PROFILE:
 
 ACNE INFORMATION:
 {acne_info}
-""".strip()
-
-QA_TEMPLATE = """
-You are an expert dermatologist assistant for the Acne Sense app.
-Answer the USER'S QUESTION based on the CONTEXT provided from our knowledge base.
-Use only the facts from the CONTEXT when answering the QUESTION.
-If you don't know the answer based on the context, say "I don't have enough information to answer that question."
-Your responses should be informative, accurate, and presented in a compassionate, professional tone.
-
-CONTEXT:
-{context}
-
-USER'S QUESTION: {query}
-""".strip()
+"""
 
 EVALUATION_TEMPLATE = """
 You are an expert evaluator for a RAG system.
@@ -80,197 +94,136 @@ and provide your evaluation in parsable JSON without using code blocks:
   "Relevance": "NON_RELEVANT" | "PARTLY_RELEVANT" | "RELEVANT",
   "Explanation": "[Provide a brief explanation for your evaluation]"
 }}
-""".strip()
+"""
 
-ACNE_DOC_TEMPLATE = """
-Acne Type: {Acne Type}
-Description: {Description}
-Common Locations: {Common Locations}
-Common Causes: {Common Causes}
-Initial Treatment: {Initial Treatment}
-OTC Ingredients: {OTC Ingredients}
-Skincare Recommendations: {Skincare Recommendations}
-Ingredients to Avoid: {Skincare Ingredients to Avoid}
-When to Consult Dermatologist: {When to Consult Dermatologist}
-Expected Timeline: {Expected Timeline}
-Combination Considerations: {Combination Considerations}
-Skin Type Adjustments: {Skin Type Adjustments}
-Age-Specific Considerations: {Age-Specific Considerations}
-""".strip()
+# Global variables for initialized components
+_embeddings = None
+_vector_store = None
+_llm = None
 
-FAQ_DOC_TEMPLATE = """
-Question: {Question}
-Answer: {Answer}
-Category: {Category}
-""".strip()
+def get_embeddings():
+    """Get or initialize Vertex AI embeddings"""
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = VertexAIEmbeddings(
+            model_name=current_app.config['VERTEX_AI_EMBEDDING_MODEL'],
+            project=current_app.config['PROJECT_ID'],
+            location=current_app.config['GEMINI_LOCATION']
+        )
+    return _embeddings
 
-# Field weights based on optimization 
-FIELD_WEIGHTS = {
-    'Acne Type': 2.97,
-    'Description': 1.35,
-    'Common Locations': 0.61,
-    'Common Causes': 1.18,
-    'Initial Treatment': 1.61,
-    'OTC Ingredients': 1.36,
-    'Skincare Recommendations': 1.08,
-    'Skincare Ingredients to Avoid': 1.35,
-    'When to Consult Dermatologist': 2.83,
-    'Expected Timeline': 0.32,
-    'Combination Considerations': 2.08,
-    'Skin Type Adjustments': 0.86,
-    'Age-Specific Considerations': 1.64,
-    'Question': 2.0,
-    'Answer': 1.5,
-    'Category': 0.5
-}
+def get_vector_store():
+    """Get or initialize Qdrant vector store"""
+    global _vector_store
+    if _vector_store is None:
+        qdrant_client = QdrantClient(
+            url=current_app.config['QDRANT_URL'],
+            api_key=current_app.config.get('QDRANT_API_KEY')
+        )
+        
+        _vector_store = QdrantVectorStore(
+            client=qdrant_client,
+            collection_name=current_app.config['QDRANT_COLLECTION_NAME'],
+            embedding=get_embeddings()
+        )
+    return _vector_store
 
-def search(query: str, filter_dict: Dict = None, num_results: int = 5) -> List[Dict]:
-    """Search the index with the given query and filters"""
+def get_llm(thinking_budget: Optional[int] = None):
+    """Get or initialize ChatVertexAI with optional thinking_budget override"""
+    global _llm
     
-    if filter_dict is None:
-        filter_dict = {}
+    # If a specific thinking_budget is requested, create a new instance
+    if thinking_budget is not None:
+        return ChatVertexAI(
+            model_name=current_app.config['GEMINI_MODEL'],
+            project=current_app.config['PROJECT_ID'],
+            location=current_app.config['GEMINI_LOCATION'],
+            max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 2048),
+            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+            top_p=current_app.config.get('LLM_TOP_P', 0.8),
+            top_k=current_app.config.get('LLM_TOP_K', 40),
+            thinking_budget=thinking_budget
+        )
     
-    results = current_app.index.search(
-        query=query, 
-        filter_dict=filter_dict, 
-        boost_dict=FIELD_WEIGHTS,
-        num_results=num_results
-    )
-    
-    return results
+    # Otherwise, use the cached instance with default thinking_budget=0
+    if _llm is None:
+        _llm = ChatVertexAI(
+            model_name=current_app.config['GEMINI_MODEL'],
+            project=current_app.config['PROJECT_ID'],
+            location=current_app.config['GEMINI_LOCATION'],
+            max_output_tokens=current_app.config.get('LLM_MAX_TOKENS', 8192),
+            temperature=current_app.config.get('LLM_TEMPERATURE', 0.7),
+            top_p=current_app.config.get('LLM_TOP_P', 0.8),
+            top_k=current_app.config.get('LLM_TOP_K', 40),
+            thinking_budget=0
+        )
+    return _llm
 
-def build_context_from_documents(documents: List[Dict]) -> str:
-    """Build context string from search result documents"""
-    context = ""
+def get_retriever(num_results: int = 5, filter_dict: Optional[Dict] = None):
+    """Get a retriever with optional filtering"""
+    search_kwargs = {"k": num_results}
     
-    for doc in documents:
-        if doc.get('source') == 'acne_types':
-            try:
-                context += ACNE_DOC_TEMPLATE.format(**doc) + "\n\n"
-            except KeyError:
-                # Handle missing keys
-                pass
-        elif doc.get('source') == 'faqs':
-            try:
-                context += FAQ_DOC_TEMPLATE.format(**doc) + "\n\n"
-            except KeyError:
-                # Handle missing keys
-                pass
+    if filter_dict:
+        # Convert filter_dict to Qdrant filter format
+        conditions = []
+        for key, value in filter_dict.items():
+            conditions.append(
+                FieldCondition(
+                    key=f"metadata.{key}",
+                    match=MatchValue(value=value)
+                )
+            )
+        
+        if conditions:
+            qdrant_filter = Filter(must=conditions)
+            search_kwargs["filter"] = qdrant_filter
     
-    return context
+    return get_vector_store().as_retriever(search_kwargs=search_kwargs)
 
+def format_docs_for_context(docs: List[Document]) -> str:
+    """Format retrieved documents into context string"""
+    return "\n\n".join([doc.page_content for doc in docs])
 
-def call_llm(prompt: str, model: str = None) -> str:
-    """Get response from Vertex AI using OpenAI client"""
+def answer_question(query: str, model: str = None, num_results: int = 5, thinking_budget: Optional[int] = None) -> str:
+    """Answer a question using RAG with Langchain"""
     try:
-        # Use the model from parameter or default from config
-        model_name = model or current_app.config['DEFAULT_MODEL']
-        vllm_api_url = current_app.config['VLLM_API_URL']
+        # Get retriever and LLM
+        retriever = get_retriever(num_results=num_results)
+        llm = get_llm(thinking_budget=thinking_budget)
         
-        # Get cached or fresh access token with better error handling
-        try:
-            access_token = get_access_token()
-            if not access_token:
-                raise Exception("Failed to obtain valid access token")
-        except Exception as auth_error:
-            current_app.logger.error(f"Authentication error: {str(auth_error)}")
-            return f"Authentication failed: Unable to connect to Vertex AI. Please check service account configuration."
+        # Create prompt template
+        prompt = ChatPromptTemplate.from_template(QA_TEMPLATE)
         
-        # Initialize OpenAI client for Vertex AI
-        client = OpenAI(
-            api_key=access_token,
-            base_url=vllm_api_url,
-            timeout=60 
+        # Create RAG chain using LCEL
+        rag_chain = (
+            {"context": retriever | format_docs_for_context, "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
         )
         
-        # Create chat completion with improved parameters
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=2800,  
-            temperature=0.7,   
-            top_p=0.8,         
-            presence_penalty=1.5,
-            extra_body={
-                "top_k": 20, 
-                "chat_template_kwargs": {"enable_thinking": False},
-            },
-        )
-        
-        # Check if this is an error response
-        if hasattr(response, 'object') and response.object == 'error':
-            error_message = f"API Error: {response.type} - {response.message}"
-            current_app.logger.error(error_message)
-            return f"Error calling language model: {error_message}"
-            
-        # Only try to access choices if they exist
-        if hasattr(response, 'choices') and response.choices:
-            return response.choices[0].message.content
-        else:
-            error_msg = f"Unexpected API response format: {response}"
-            current_app.logger.error(error_msg)
-            return f"Error: {error_msg}"
+        # Invoke the chain
+        answer = rag_chain.invoke(query)
+        return answer
         
     except Exception as e:
-        error_msg = f"Error calling LLM: {str(e)}"
-        current_app.logger.error(error_msg)
-        return f"Error connecting to Vertex AI: {str(e)}"
+        current_app.logger.error(f"Error in answer_question: {str(e)}")
+        return f"Error generating answer: {str(e)}"
 
-# def call_llm(prompt: str, model: str = None) -> str:
-#     """Get response from vLLM using OpenAI client"""
-#     try:
-#         # Use the model from parameter or default from config
-#         model_name = model or current_app.config['DEFAULT_MODEL']
-        
-#         # Initialize OpenAI client for vLLM
-#         client = OpenAI(
-#             api_key="dummy-key",  # vLLM doesn't require real API key
-#             base_url=current_app.config['VLLM_API_URL']
-#         )
-        
-#         # Create chat completion
-#         response = client.chat.completions.create(
-#             model=model_name,
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant specializing in acne-related questions."},
-#                 {"role": "user", "content": prompt}
-#             ],
-#             max_tokens=1000,
-#             temperature=0.7
-#         )
-        
-#         return response.choices[0].message.content
-        
-#     except Exception as e:
-#         return f"Error connecting to vLLM: {str(e)}"
-
-
-def answer_question(query: str, model: str = None) -> str:
-    """Answer a question using RAG"""
-    search_results = search(query, num_results=5)
-    context = build_context_from_documents(search_results)
-    
-    prompt = QA_TEMPLATE.format(
-        query=query,
-        context=context
-    )
-    
-    answer = call_llm(prompt, model)
-    return answer
-
-def evaluate_relevance(question: str, answer: str, model: str = "qwen2:7b") -> Dict[str, str]:
+def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[str, str]:
     """Evaluate the relevance of the answer to the question"""
-    prompt = EVALUATION_TEMPLATE.format(
-        question=question,
-        answer=answer
-    )
-    
-    evaluation = call_llm(prompt, model)
-    
     try:
+        llm = get_llm()
+        prompt = ChatPromptTemplate.from_template(EVALUATION_TEMPLATE)
+        
+        # Create evaluation chain
+        eval_chain = prompt | llm | StrOutputParser()
+        
+        evaluation = eval_chain.invoke({
+            "question": question,
+            "answer": answer
+        })
+        
         # Extract JSON from the response
         json_match = re.search(r'({.*})', evaluation.replace('\n', ' '))
         if json_match:
@@ -279,56 +232,117 @@ def evaluate_relevance(question: str, answer: str, model: str = "qwen2:7b") -> D
             return json_eval
         else:
             return {"Relevance": "UNKNOWN", "Explanation": "Failed to parse evaluation"}
-    except json.JSONDecodeError:
-        return {"Relevance": "UNKNOWN", "Explanation": "Failed to parse evaluation"}
+            
+    except Exception as e:
+        current_app.logger.error(f"Error in evaluate_relevance: {str(e)}")
+        return {"Relevance": "UNKNOWN", "Explanation": f"Error: {str(e)}"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = "qwen2:7b") -> str:
-    """Process CV diagnosis results and provide recommendations"""
-    patient_profile = f"""
-    Age: {user_info.get('age', 'Unknown')}
-    Skin Type: {user_info.get('skin_type', 'Unknown')}
-    Skin Tone: {user_info.get('skin_tone', 'Unknown')}
-    Sensitivity: {user_info.get('skin_sensitivity', 'Unknown')}
-    """.strip()
-    
-    # Retrieve relevant acne information
-    acne_info = ""
-    
-    for acne_type in acne_types:
-        search_results = search(
-            query=acne_type,
-            filter_dict={"source": "acne_types"},
-            num_results=1
-        )
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, str]:
+    """Process diagnosis results and provide recommendations using RAG"""
+    try:
+        # Build patient profile
+        patient_profile = f"""
+        Age: {user_info.get('age', 'Unknown')}
+        Skin Type: {user_info.get('skin_type', 'Unknown')}
+        Skin Tone: {user_info.get('skin_tone', 'Unknown')}
+        Sensitivity: {user_info.get('skin_sensitivity', 'Unknown')}
+        """.strip()
         
-        if search_results:
-            acne_info += build_context_from_documents(search_results)
+        # Retrieve relevant acne information
+        acne_info_parts = []
+        
+        # Get information for each acne type
+        for acne_type in acne_types:
+            retriever = get_retriever(num_results=3)
+            search_results = retriever.invoke(acne_type)
+            
+            # Filter for acne_types source manually after retrieval
+            acne_type_docs = [doc for doc in search_results if doc.metadata.get('source') == 'acne_types']
+            if acne_type_docs:
+                acne_info_parts.extend([doc.page_content for doc in acne_type_docs[:2]])
+        
+        # If we have multiple acne types, search for combination considerations
+        if len(acne_types) > 1:
+            combination_query = " ".join(acne_types) + " combination treatment"
+            combo_retriever = get_retriever(num_results=2)
+            combo_results = combo_retriever.invoke(combination_query)
+            
+            if combo_results:
+                acne_info_parts.append("COMBINATION CONSIDERATIONS:")
+                acne_info_parts.extend([doc.page_content for doc in combo_results])
+        
+        acne_info = "\n\n".join(acne_info_parts)
+        
+        # Create diagnosis chain
+        llm = get_llm(thinking_budget=thinking_budget)
+        prompt = ChatPromptTemplate.from_template(DIAGNOSIS_TEMPLATE)
+        
+        diagnosis_chain = prompt | llm | StrOutputParser()
+        
+        # Generate response
+        response = diagnosis_chain.invoke({
+            "patient_profile": patient_profile,
+            "acne_info": acne_info
+        })
+        
+        # Parse the response into sections
+        sections = parse_recommendation_sections(response)
+        return sections
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in process_diagnosis: {str(e)}")
+        # Return error in structured format
+        return {
+            "overview": f"Error generating diagnosis: {str(e)}",
+            "recommendations": "Please consult with a dermatologist for specific treatment recommendations.",
+            "skincare_tips": "Maintain good skincare hygiene and use appropriate products for your skin type.",
+            "important_notes": "Consult a healthcare professional for serious skin concerns."
+        }
+
+def parse_recommendation_sections(recommendation_text: str) -> Dict[str, str]:
+    """Parse recommendation text into structured sections"""
+    sections = {
+        "overview": "",
+        "recommendations": "",
+        "skincare_tips": "",
+        "important_notes": ""
+    }
     
-    # If we have multiple acne types, search for combination considerations
-    if len(acne_types) > 1:
-        combination_query = " ".join(acne_types) + " combination"
-        combo_results = search(
-            query=combination_query,
-            num_results=3
-        )
-        if combo_results:
-            acne_info += "\n\nCombination Considerations:\n"
-            acne_info += build_context_from_documents(combo_results)
+    if not recommendation_text or not isinstance(recommendation_text, str):
+        return sections
     
-    # Build the final prompt
-    prompt = DIAGNOSIS_TEMPLATE.format(
-        patient_profile=patient_profile,
-        acne_info=acne_info
-    )
+    try:
+        # Split sections safely
+        overview_match = recommendation_text.split('## OVERVIEW')
+        if len(overview_match) > 1:
+            overview_section = overview_match[1].split('## RECOMMENDATIONS')[0]
+            sections["overview"] = overview_section.strip() if overview_section else ""
+        
+        recommendations_match = recommendation_text.split('## RECOMMENDATIONS')
+        if len(recommendations_match) > 1:
+            recommendations_section = recommendations_match[1].split('## SKINCARE TIPS')[0]
+            sections["recommendations"] = recommendations_section.strip() if recommendations_section else ""
+        
+        skincare_tips_match = recommendation_text.split('## SKINCARE TIPS')
+        if len(skincare_tips_match) > 1:
+            skincare_tips_section = skincare_tips_match[1].split('## IMPORTANT NOTES')[0]
+            sections["skincare_tips"] = skincare_tips_section.strip() if skincare_tips_section else ""
+        
+        important_notes_match = recommendation_text.split('## IMPORTANT NOTES')
+        if len(important_notes_match) > 1:
+            important_notes_section = important_notes_match[1]
+            sections["important_notes"] = important_notes_section.strip() if important_notes_section else ""
+            
+    except Exception as e:
+        current_app.logger.error(f"Error parsing recommendation sections: {str(e)}")
+        # Fallback: put entire text in overview
+        sections["overview"] = recommendation_text
     
-    # Get response from LLM
-    response = call_llm(prompt, model)
-    
-    return response
+    return sections
 
 def rag(query: str, target_language: str = "en", 
-                    translation_method: str = "google", 
-                    model: str = None) -> Dict[str, Any]:
+        translation_method: str = "google", 
+        model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, Any]:
     """
     Multilingual RAG function to handle queries in any language
     
@@ -337,6 +351,7 @@ def rag(query: str, target_language: str = "en",
         target_language: Language to return answer in (default: "en")
         translation_method: Translation method ("google", "llm", "both")
         model: LLM model to use (default: from configuration)
+        thinking_budget: Thinking budget for the LLM (default: None, uses cached instance with 0)
         
     Returns:
         Dictionary with answer and metadata
@@ -366,9 +381,9 @@ def rag(query: str, target_language: str = "en",
         query = query_translation["translated_text"]
     
     # Step 2: Process the query with English RAG
-    answer_in_english = answer_question(query, model=model)
+    answer_in_english = answer_question(query, model=model, thinking_budget=thinking_budget)
     
-    # Step 3: Translate answer back to source language if needed
+    # Step 3: Translate answer back to target language if needed
     final_answer = answer_in_english
     if target_language != "en":
         answer_translation = translation_svc.translate(
@@ -404,3 +419,24 @@ def rag(query: str, target_language: str = "en",
     }
     
     return result
+
+# Legacy function compatibility - these functions are no longer used but kept for backward compatibility
+def search(query: str, filter_dict: Dict = None, num_results: int = 5) -> List[Dict]:
+    """Legacy search function - replaced by Qdrant vector search"""
+    current_app.logger.warning("Legacy search function called - this should be replaced with vector search")
+    return []
+
+def build_context_from_documents(documents: List[Dict]) -> str:
+    """Legacy context builder - replaced by format_docs_for_context"""
+    current_app.logger.warning("Legacy build_context_from_documents called")
+    return ""
+
+def call_llm(prompt: str, model: str = None) -> str:
+    """Legacy LLM call - replaced by Langchain chains"""
+    current_app.logger.warning("Legacy call_llm function called - this should be replaced with Langchain chains")
+    try:
+        llm = get_llm()
+        result = llm.invoke(prompt)
+        return result.content if hasattr(result, 'content') else str(result)
+    except Exception as e:
+        return f"Error: {str(e)}"

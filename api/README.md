@@ -3,6 +3,7 @@
 ### Prerequisites
 - Python 3.8+
 - Virtual environment 
+- Google Cloud account with Vertex AI access
 
 ### Installation
 
@@ -28,8 +29,11 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 ACNE_TYPES_PATH=data/knowledge-base/acne_types.csv
 FAQS_PATH=data/knowledge-base/faqs.csv
-DEFAULT_MODEL=qwen2:7b
-OLLAMA_API_URL=http://localhost:11434/api/generate
+DEFAULT_MODEL=gemini-2.5-flash-preview-05-20
+PROJECT_ID=your_gcp_project_id
+REGION=asia-southeast1
+GEMINI_LOCATION=us-central1
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account-key.json
 ```
 
 ## Running the API
