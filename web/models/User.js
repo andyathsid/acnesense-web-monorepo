@@ -197,25 +197,41 @@ static async updateProfile(id, updates) {
             return false;
         }
     }
-    static async updateProfile(id, updates) {
-    try {
-        const { data, error } = await supabaseAdmin
-            .from('profiles')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
 
-        if (error) {
-            throw new Error(error.message);
+    static async resetPasswordForEmail(email, redirectTo) {
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(
+                email.toLowerCase().trim(),
+                { redirectTo }
+            );
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Reset password error:', error);
+            throw error;
         }
-
-        return data;
-    } catch (error) {
-        console.error('Profile update error:', error);
-        throw error;
     }
-}
+
+    static async updatePassword(newPassword) {
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Update password error:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = User;

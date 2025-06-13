@@ -571,7 +571,11 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/forgot-password', requireGuest, (req, res) => {
-  res.render('forgot/forgot1'); // Adjust the path based on your views directory structure
+  res.render('forgot/forgot1');
+});
+
+router.get('/reset-password', requireGuest, (req, res) => {
+  res.render('forgot/reset-password');
 });
 
 

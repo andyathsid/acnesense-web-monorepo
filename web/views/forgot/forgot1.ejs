@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>AcneSense - Forgot Password</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -120,5 +121,117 @@
         <img src="/image/login.png" alt="Face with acne" class="h-full w-full object-cover" loading="lazy" style="min-height: 600px" />
       </div>
     </div>
+
+    <!-- Status Messages -->
+    <div id="message-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 hidden">
+      <div id="status-message" class="px-6 py-3 rounded-lg shadow-lg text-white font-medium"></div>
+    </div>
+
+    <script>
+      // Initialize Supabase client
+      const supabase = window.supabase.createClient(
+        '<%= process.env.SUPABASE_URL %>',
+        '<%= process.env.SUPABASE_KEY %>'
+      );
+
+      // Get current domain for redirect URL
+      const getCurrentDomain = () => {
+        const protocol = window.location.protocol;
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        
+        // For production, use environment-configured site URL if available
+        const siteUrl = '<%= process.env.SITE_URL || "" %>';
+        if (siteUrl) {
+          return siteUrl;
+        }
+        
+        // Fallback to current location
+        if (port && port !== '80' && port !== '443') {
+          return `${protocol}//${hostname}:${port}`;
+        }
+        return `${protocol}//${hostname}`;
+      };
+
+      // Show status message
+      function showMessage(message, isError = false) {
+        const messageContainer = document.getElementById('message-container');
+        const statusMessage = document.getElementById('status-message');
+        
+        statusMessage.textContent = message;
+        statusMessage.className = `px-6 py-3 rounded-lg shadow-lg font-medium ${
+          isError ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+        }`;
+        
+        messageContainer.classList.remove('hidden');
+        
+        setTimeout(() => {
+          messageContainer.classList.add('hidden');
+        }, 5000);
+      }
+
+      // Handle form submission
+      document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        
+        forms.forEach(form => {
+          form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = form.querySelector('#email').value.trim();
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Validation
+            if (!email) {
+              showMessage('Email harus diisi!', true);
+              return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+              showMessage('Format email tidak valid!', true);
+              return;
+            }
+
+            // Disable submit button
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Mengirim...';
+            submitButton.disabled = true;
+
+            try {
+              // Construct redirect URL
+              const redirectUrl = `${getCurrentDomain()}/reset-password`;
+              
+              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: redirectUrl
+              });
+
+              if (error) {
+                throw error;
+              }
+
+              showMessage('Email reset password telah dikirim! Silakan cek inbox Anda.');
+              form.reset();
+            } catch (error) {
+              console.error('Reset password error:', error);
+              
+              if (error.message.includes('Email not confirmed')) {
+                showMessage('Email belum diverifikasi. Silakan verifikasi email terlebih dahulu.', true);
+              } else if (error.message.includes('Invalid email')) {
+                showMessage('Email tidak valid!', true);
+              } else if (error.message.includes('User not found')) {
+                showMessage('Email tidak terdaftar dalam sistem!', true);
+              } else {
+                showMessage('Gagal mengirim email reset password. Silakan coba lagi.', true);
+              }
+            } finally {
+              // Re-enable submit button
+              submitButton.textContent = originalText;
+              submitButton.disabled = false;
+            }
+          });
+        });
+      });
+    </script>
   </body>
 </html>
