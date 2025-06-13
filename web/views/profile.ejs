@@ -1,115 +1,98 @@
-
 <!DOCTYPE html>
 <html lang="id">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>AcneSense Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Maven+Pro:wght@500&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
     <style>
-      body,
-      html {
-        overscroll-behavior: none;
-        -webkit-overflow-scrolling: touch;
-        margin: 0;
-        padding: 0;
-        font-family: "Manrope", sans-serif;
-      }
-      .header-font{
-        font-family: 'poppins', sans-serif;
-        font-weight: 800;
-        font-size: 24px;
-      }
-      .header-desktop-font{
-        font-family: 'poppins', sans-serif;
-        font-weight: 600;
-        font-size: 24px;
-      }
-      .title-font {
-        font-weight: 800;
-        font-size: 1.75rem; /* 28px approx */
-        user-select: none;
-      }
-      .accent-green {
-        color: #40c057;
-      }
-      .sub-title-font {
-        font-family: "Maven Pro", sans-serif;
-        font-weight: 500;
-        font-size: 0.875rem; /* 14px */
-        user-select: none;
-      }
-      .icon-style {
-        font-size: 1.25rem;
-      }
-      /* Rounded corner style for each button (similar radius on top-left) */
-      .btn-rounded {
-        border-top-left-radius: 1rem;
-      }
+        body, html {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+            font-family: "Manrope", sans-serif;
+        }
+        .header-font {
+            font-family: 'poppins', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+        }
+        .header-desktop-font {
+            font-family: 'poppins', sans-serif;
+            font-weight: 600;
+            font-size: 24px;
+        }
+        .title-font {
+            font-weight: 800;
+            font-size: 1.75rem;
+            user-select: none;
+        }
+        .accent-green {
+            color: #40c057;
+        }
+        .sub-title-font {
+            font-family: "Maven Pro", sans-serif;
+            font-weight: 500;
+            font-size: 0.875rem;
+            user-select: none;
+        }
+        .icon-style {
+            font-size: 1.25rem;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <!-- Mobile Version -->
     <div class="block md:hidden h-screen bg-white relative flex flex-col">
-      <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center justify-between">
-        <div class="flex items-center">
-          <button aria-label="Back" class="mr-5 text-black select-none">
-            <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
-          </button>
-          <h1 class="text-black header-font select-none">Profile</h1>
-        </div>
-        <div class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
-          <img src="image.png" alt="avatar" class="w-full h-full object-cover" />
-        </div>
-      </header>
-  
-      <main class="flex-1 p-6 bg-white">
-        <div class="bg-[#2C5E5F] text-white p-4 rounded-lg mb-4">
-          <div class="flex items-center">
-            <div class="w-12 h-12 rounded-full border border-white mr-4">
-              <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full rounded-full object-cover" />
+        <header class="bg-[#E5F6E5] px-6 pt-6 pb-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <button aria-label="Back" class="mr-5 text-black select-none">
+                    <i class="fa-solid fa-arrow-left" style="font-size: 24px; font-weight: 800; width: 20px;"></i>
+                </button>
+                <h1 class="text-black header-font select-none">Profile</h1>
             </div>
-            <div>
-              <h2 class="font-bold text-lg">Fahmi Nursafaat</h2>
-              <p class="text-sm">fahminursafaat@gmail.com</p>
-              
-              <!-- Menambahkan Skin Tone dan Jenis Kulit di sini untuk tampilan mobile -->
-              <p class="text-sm mt-2">Skin Tone: <span class="font-semibold">Terang</span></p>
-              <p class="text-sm">Jenis Kulit: <span class="font-semibold">Kering</span></p>
+            <div class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+                <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full object-cover" />
             </div>
-          </div>
-        </div>
+        </header>
+    
+        <main class="flex-1 p-6 bg-white">
+            <div class="bg-[#2C5E5F] text-white p-4 rounded-lg mb-4">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full border border-white mr-4">
+                        <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full rounded-full object-cover" />
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg"><%= user.nama %></h2>
+                        <p class="text-sm"><%= user.email %></p>
+                        <p class="text-sm mt-2">Skin Tone: <span class="font-semibold"><%= user.skin_tone ? user.skin_tone : 'Belum Ditetapkan' %></span></p>
+                        <p class="text-sm">Jenis Kulit: <span class="font-semibold"><%= user.jenis_kulit ? user.jenis_kulit : 'Belum Ditetapkan' %></span></p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="bg-white rounded-lg shadow-md">
-          <div class="border-b border-gray-200 p-4 flex items-center justify-between">
-            <div class="flex items-center">
-              <i class="fa-solid fa-user-pen mr-3 text-gray-600"></i>
-              <span class="font-semibold">Edit Profile</span>
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="border-b border-gray-200 p-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-user-pen mr-3 text-gray-600"></i>
+                        <span class="font-semibold">Edit Profile</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="border-b border-gray-200 p-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-right-from-bracket mr-3 text-gray-600"></i>
+                        <span class="font-semibold">Logout</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                </div>
             </div>
-            <i class="fa-solid fa-chevron-right text-gray-400"></i>
-          </div>
-          <div class="border-b border-gray-200 p-4 flex items-center justify-between">
-            <div class="flex items-center">
-              <i class="fa-solid fa-right-from-bracket mr-3 text-gray-600"></i>
-              <span class="font-semibold">Logout</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-gray-400"></i>
-          </div>
-        </div>
-      </main>
+        </main>
     </div>
 
     <!-- Desktop Version -->
@@ -130,131 +113,125 @@
                         </a>
                     </header>
 
-          <!-- Right Panel -->
-          
-            
-            
-            <div class="p-10 flex-1">
-    <div class="bg-[#2C5E5F] text-white p-6 rounded-lg mb-6">
-        <div class="flex items-center">
-            <div class="w-16 h-16 rounded-full border-2 border-white mr-6">
-                <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full object-cover" />
-            </div>
-            <div>
-                <h2 class="font-bold text-xl mb-1">Fahmi Nursafaat</h2>
-                <p class="text-sm">fahminursafaat@gmail.com</p>
-                
-                <!-- Menambahkan Skin Tone dan Jenis Kulit di sini -->
-                <p class="text-sm mt-2">Skin Tone: <span class="font-semibold">Terang</span></p>
-                <p class="text-sm">Jenis Kulit: <span class="font-semibold">Kering</span></p>
-            </div>
-        </div>
-    </div>
-    <!-- Edit Profile -->
-    <a href="/edit-profile" class="border-b border-gray-200 p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
-        <div class="flex items-center">
-            <i class="fa-solid fa-user-pen mr-4 text-gray-600"></i>
-            <span class="font-semibold">Edit Profile</span>
-        </div>
-        <i class="fa-solid fa-chevron-right text-gray-400"></i>
-    </a>
+                    <div class="p-10 flex-1">
+                        <div class="bg-[#2C5E5F] text-white p-6 rounded-lg mb-6">
+                            <div class="flex items-center">
+                                <div class="w-16 h-16 rounded-full border-2 border-white mr-6">
+                                    <img src="<%= user.foto_profile ? user.foto_profile : '/image/foto_profile/default.png' %>" alt="avatar" class="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                    <h2 class="font-bold text-xl mb-1"><%= user.nama %></h2>
+                                    <p class="text-sm"><%= user.email %></p>
+                                    <p class="text-sm mt-2">Skin Tone: <span class="font-semibold"><%= user.skin_tone ? user.skin_tone : 'Belum Ditetapkan' %></span></p>
+                                    <p class="text-sm">Jenis Kulit: <span class="font-semibold"><%= user.jenis_kulit ? user.jenis_kulit : 'Belum Ditetapkan' %></span></p>
+                                </div>
+                            </div>
+                        </div>
 
-    <!-- Logout -->
-    <a onclick="logout()" class="border-b border-gray-200 p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
-        <div class="flex items-center">
-            <i class="fa-solid fa-right-from-bracket mr-4 text-gray-600"></i>
-            <span class="font-semibold">Logout</span>
-        </div>
-        
-        <i class="fa-solid fa-chevron-right text-gray-400"></i>
-    </a>
-</div>
+                        <!-- Edit Profile -->
+                        <a href="/edit-profile" class="border-b border-gray-200 p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-user-pen mr-4 text-gray-600"></i>
+                                <span class="font-semibold">Edit Profile</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                        </a>
+
+                        <!-- Logout -->
+                        <a onclick="logout()" class="border-b border-gray-200 p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-4 text-gray-600"></i>
+                                <span class="font-semibold">Logout</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
+
     <script>
-    // Logout function dengan SweetAlert2
+    // Logout function with confirmation
     function logout() {
-      Swal.fire({
-        title: 'Konfirmasi Logout',
-        text: 'Apakah Anda yakin ingin keluar dari dashboard?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fas fa-sign-out-alt mr-2"></i>Ya, Logout',
-        cancelButtonText: '<i class="fas fa-times mr-2"></i>Batal',
-        reverseButtons: true,
-        customClass: {
-          popup: 'rounded-2xl',
-          confirmButton: 'rounded-xl',
-          cancelButton: 'rounded-xl'
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Show loading
-          Swal.fire({
-            title: 'Logging out...',
-            text: 'Mohon tunggu sebentar',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-              Swal.showLoading();
-            },
+        Swal.fire({
+            title: 'Konfirmasi Logout',
+            text: 'Apakah Anda yakin ingin keluar dari dashboard?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-sign-out-alt mr-2"></i>Ya, Logout',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i>Batal',
+            reverseButtons: true,
             customClass: {
-              popup: 'rounded-2xl'
+                popup: 'rounded-2xl',
+                confirmButton: 'rounded-xl',
+                cancelButton: 'rounded-xl'
             }
-          });
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Logging out...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    }
+                });
 
-          // Perform logout
-          fetch('/logout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
+                // Perform logout
+                fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Logout Berhasil!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: {
+                                popup: 'rounded-2xl'
+                            }
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Logout Gagal!',
+                            text: data.message,
+                            customClass: {
+                                popup: 'rounded-2xl'
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Terjadi kesalahan saat logout',
+                        customClass: {
+                            popup: 'rounded-2xl'
+                        }
+                    });
+                });
             }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Logout Berhasil!',
-                text: data.message,
-                timer: 1500,
-                showConfirmButton: false,
-                customClass: {
-                  popup: 'rounded-2xl'
-                }
-              }).then(() => {
-                window.location.href = '/login';
-              });
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Logout Gagal!',
-                text: data.message,
-                customClass: {
-                  popup: 'rounded-2xl'
-                }
-              });
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Terjadi kesalahan saat logout',
-              customClass: {
-                popup: 'rounded-2xl'
-              }
-            });
-          });
-        }
-      });
+        });
     }
-</script>
-  </body>
+    </script>
+</body>
 </html>

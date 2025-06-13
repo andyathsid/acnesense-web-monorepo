@@ -269,7 +269,8 @@ class DiagnosisClassificationService:
         # Load and preprocess image using PIL
         with Image.open(img_path) as img:
             img = img.resize(self.target_size)
-            img_array = np.array(img, dtype=np.float32) / 255.0
+            # EfficientNet expects float32 input in [0, 255] range
+            img_array = np.array(img, dtype=np.float32)
             img_array = np.expand_dims(img_array, axis=0)
 
         self.interpreter.set_tensor(input_details[0]['index'], img_array)
@@ -286,7 +287,7 @@ class DiagnosisPipeline:
     def __init__(self, detection_model_path=None, classification_model_path=None, class_index_path=None):
         # Use paths from config if not provided
         self.detection_model_path = detection_model_path or "models/detection/best.pt"
-        self.classification_model_path = classification_model_path or "models/classification/model.tflite"
+        self.classification_model_path = classification_model_path or "models/classification/efficientnet_v2.tflite"
         self.class_index_path = class_index_path or "models/classification/labels.json"
         
         # Get directory paths from flask config
