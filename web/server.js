@@ -8,7 +8,7 @@ const { supabase } = require('./config/db');
 const viteHelper = require('./config/vite');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware untuk parsing
 app.use(express.json({ limit: '50mb' }));

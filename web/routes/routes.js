@@ -38,6 +38,67 @@ router.get('/register', requireGuest, (req, res) => {
   res.render('registrasi');
 });
 
+// Edit profile route in routes.js
+router.get('/edit-profile', requireAuth, async (req, res) => {
+    try {
+        // Mengambil ID pengguna yang sedang login
+        const userId = req.user.id; // Mengambil ID dari objek pengguna yang sudah diotentikasi
+        
+        // Mendapatkan data pengguna dari database berdasarkan ID
+        const user = await User.findById(userId);
+
+        // Cek apakah pengguna ditemukan
+        if (!user) {
+            return res.redirect('/login'); // Redirect jika pengguna tidak ditemukan
+        }
+
+        // Render halaman edit profile, kirimkan data pengguna ke EJS
+        res.render('edit-profile', {
+            user // Mengirim data pengguna untuk ditampilkan di form
+        });
+    } catch (error) {
+        console.error('Edit Profile error:', error);
+        res.redirect('/login'); // Redirect jika terjadi error
+    }
+});
+// Route to handle profile update
+router.post('/edit-profile', async (req, res) => {
+    const { id, nama, email, tanggal_lahir, skinTone, skinType } = req.body;
+
+    // Cek dan log untuk memastikan ID dan data yang diterima
+    console.log('Received data:', { id, nama, email, tanggal_lahir, skinTone, skinType });
+
+    try {
+        const userProfile = await User.updateProfile(id, {
+            nama,
+            email,
+            tanggal_lahir,
+            skin_tone: skinTone,
+            jenis_kulit: skinType
+        });
+
+        res.json({ success: true, message: 'Profile updated successfully!', user: userProfile });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.redirect('/login'); // Redirect jika user tidak ditemukan
+    }
+
+    res.render('profile', {
+      user // Mengirim data pengguna ke EJS
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    res.redirect('/login'); // Redirect jika terjadi error
+  }
+});
+
 // Registration route
 router.post('/register', async (req, res) => {
   try {
@@ -508,6 +569,11 @@ router.get('/health', (req, res) => {
     uptime: process.uptime()
   });
 });
+
+router.get('/forgot-password', requireGuest, (req, res) => {
+  res.render('forgot/forgot1'); // Adjust the path based on your views directory structure
+});
+
 
 // API routes
 router.get('/api/session-status', (req, res) => {
