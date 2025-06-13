@@ -90,25 +90,31 @@ class User {
         }
     }
 
-    static async updateProfile(id, updates) {
-        try {
-            const { data, error } = await supabaseAdmin
-                .from('profiles')
-                .update(updates)
-                .eq('id', id)
-                .select()
-                .single();
-
-            if (error) {
-                throw new Error(error.message);
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Profile update error:', error);
-            throw error;
+static async updateProfile(id, updates) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .update(updates)
+            .eq('id', id)
+            .select(); // Hanya gunakan .select() tanpa .single()
+        
+        // Cek apakah ada error
+        if (error) {
+            throw new Error(error.message);
         }
+
+        // Periksa apakah tidak ada baris yang ditemukan
+        if (!data || data.length === 0) {
+            throw new Error('No profile found with the given ID.');
+        }
+
+        // Mengembalikan objek profil yang diperbarui (data[0] karena mengembalikan array)
+        return data[0]; // Kembali hanya objek pertama
+    } catch (error) {
+        console.error('Profile update error:', error);
+        throw error; // Mengoper error ke lapisan atas
     }
+}
 
     static async signIn(email, password) {
         try {
