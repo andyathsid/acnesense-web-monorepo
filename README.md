@@ -30,31 +30,42 @@ Pilih salah satu menu yang ingin digunakan dalam aplikasi.
 
 ### 6. Menu Deteksi
 Anda dapat mengupload gambar atau menggunakan kamera untuk mengambil gambar langsung.  
-![Menu Deteksi](https://github.com/user-attachments/assets/1d0b6f06-362e-48d5-bc45-6b86b715b8c8)
+![WhatsApp Image 2025-06-13 at 3 53 20 PM](https://github.com/user-attachments/assets/6d4038e3-bcbb-4500-9f9e-13d4b7f19729)
 
 ### 7. Menu Preview
 Di sini, Anda bisa memilih untuk upload gambar lagi, mengambil gambar ulang, atau langsung melakukan deteksi.  
-![Menu Preview](https://github.com/user-attachments/assets/8f8cf384-1389-4474-87e2-4ccdf993772d)
+![WhatsApp Image 2025-06-13 at 3 47 08 PM](https://github.com/user-attachments/assets/b9337717-9c62-409f-9c9d-5bd795c65f90)
+
 
 ### 7. Menu Hasil
 Di sini, Anda dapat melihat hasil deteksi dan klasifikasi jerawat dari foto yang telah pengguna upload dan deteksi
-![Menu Hasil](https://github.com/user-attachments/assets/bba0b0b6-5b3a-4bb6-9ae2-e1affd0ad10c)
+
+![WhatsApp Image 2025-06-13 at 3 48 57 PM](https://github.com/user-attachments/assets/8542afa8-fbb0-451f-95da-bbe5c6d1aa07)
+
 
 ### 8. Menu Riwayat
 Pengguna dapat melihat dan membaca ulang riwayat hasil deteksi sebelumnya.  
-![Menu Riwayat](https://github.com/user-attachments/assets/720123c8-55a2-4ec8-a16c-5025d6c44cd9)
+
+![WhatsApp Image 2025-06-13 at 3 49 35 PM](https://github.com/user-attachments/assets/5bf7e723-fdfb-41d8-84b3-78be14432515)
+
 
 ### 9. Menu Chatbot
 Manfaatkan fitur AI Assistant untuk bertanya mengenai jerawat dan penanganannya.  
-![Menu Chatbot](https://github.com/user-attachments/assets/468b3b33-17a0-4f22-a0b0-d7c3277b01b5)
+
+![WhatsApp Image 2025-06-13 at 3 47 50 PM](https://github.com/user-attachments/assets/c75108f1-d761-475c-a4b1-b4e71868b0f5)
+
 
 ### 10. Menu Profile
 Lihat informasi singkat mengenai biodata pengguna.  
-![Menu Profile](https://github.com/user-attachments/assets/201080ac-4a1b-49e7-aecb-5ed2256bec16)
+
+![WhatsApp Image 2025-06-13 at 3 50 37 PM](https://github.com/user-attachments/assets/2cf205f6-f265-453c-8094-ef9354cd7767)
+
 
 ### 11. Menu Edit Profile
 Pengguna dapat mengubah dan memperbarui informasi biodata mereka.  
-![Menu Edit Profile](https://github.com/user-attachments/assets/3eb1d90a-35f5-4e8d-847e-c4a891116816)
+
+![WhatsApp Image 2025-06-13 at 3 51 18 PM](https://github.com/user-attachments/assets/7ffd34d6-c345-4e26-8db1-066a8a517391)
+
 
 ### 12. Menu Lupa Password
 Jikalau pengguna tidak bisa masuk akun dikarenakan lupa password Pengguna dapat merubah password akun dengan menggunakan menu lupa password. Masukkan Email terdaftar pada web Acnesense. Masukkan OTP yang diberikan melalui email terdaftar. Masukkan password baru dan konfirmasi
