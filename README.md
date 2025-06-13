@@ -1,6 +1,3 @@
-Berikut adalah perbaikan README dengan tautan gambar yang dapat Anda salin langsung sebagai tautan, sehingga tetap berfungsi sebagai link. Anda dapat menyalin markdown ini dengan mudah:
-
----
 
 # Acnesense - Aplikasi Web Progresif
 
@@ -37,31 +34,31 @@ Di sini, Anda bisa memilih untuk upload gambar lagi, mengambil gambar ulang, ata
 ![WhatsApp Image 2025-06-13 at 3 47 08 PM](https://github.com/user-attachments/assets/b9337717-9c62-409f-9c9d-5bd795c65f90)
 
 
-### 7. Menu Hasil
+### 8. Menu Hasil
 Di sini, Anda dapat melihat hasil deteksi dan klasifikasi jerawat dari foto yang telah pengguna upload dan deteksi
 
 ![WhatsApp Image 2025-06-13 at 3 48 57 PM](https://github.com/user-attachments/assets/8542afa8-fbb0-451f-95da-bbe5c6d1aa07)
 
 
-### 8. Menu Riwayat
+### 9. Menu Riwayat
 Pengguna dapat melihat dan membaca ulang riwayat hasil deteksi sebelumnya.  
 
 ![WhatsApp Image 2025-06-13 at 3 49 35 PM](https://github.com/user-attachments/assets/5bf7e723-fdfb-41d8-84b3-78be14432515)
 
 
-### 9. Menu Chatbot
+### 10. Menu Chatbot
 Manfaatkan fitur AI Assistant untuk bertanya mengenai jerawat dan penanganannya.  
 
 ![WhatsApp Image 2025-06-13 at 3 47 50 PM](https://github.com/user-attachments/assets/c75108f1-d761-475c-a4b1-b4e71868b0f5)
 
 
-### 10. Menu Profile
+### 11. Menu Profile
 Lihat informasi singkat mengenai biodata pengguna.  
 
 ![WhatsApp Image 2025-06-13 at 3 50 37 PM](https://github.com/user-attachments/assets/2cf205f6-f265-453c-8094-ef9354cd7767)
 
 
-### 11. Menu Edit Profile
+### 12. Menu Edit Profile
 Pengguna dapat mengubah dan memperbarui informasi biodata mereka.  
 
 ![WhatsApp Image 2025-06-13 at 3 51 18 PM](https://github.com/user-attachments/assets/7ffd34d6-c345-4e26-8db1-066a8a517391)
