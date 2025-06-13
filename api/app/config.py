@@ -47,7 +47,7 @@ class Config:
     
     # ML models paths
     DETECTION_MODEL_PATH = os.getenv('DETECTION_MODEL_PATH', 'models/detection/yolo_v2.tflite')
-    CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/cnn_v1.tflite')
+    CLASSIFICATION_MODEL_PATH = os.getenv('CLASSIFICATION_MODEL_PATH', 'models/classification/efficientnet_v2.tflite')
     CLASS_INDEX_PATH = os.getenv('CLASS_INDEX_PATH', 'models/classification/labels.json')
     
     GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service-account-key.json')
