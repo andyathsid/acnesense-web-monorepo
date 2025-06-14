@@ -23,22 +23,26 @@ USER'S QUESTION: {question}
 
 INSTRUCTIONS:
 1.  Carefully read the USER'S QUESTION and the CONTEXT.
-2.  **Prioritize the CONTEXT**: If the CONTEXT contains information that directly and sufficiently answers the USER'S QUESTION, formulate your answer based *only* on that information.
-3.  **Use General Knowledge if Context is Insufficient**: If the CONTEXT does *not* contain relevant information, or if it's insufficient to fully answer the USER'S QUESTION, you may use your general dermatological knowledge to provide a helpful answer.
+2.  **Respond in the following language: {target_language}**. If the question is in a different language, translate your understanding of the question if necessary, but the final answer must be in {target_language}.
+3.  **Prioritize the CONTEXT**: If the CONTEXT contains information that directly and sufficiently answers the USER'S QUESTION, formulate your answer based *only* on that information.
+4.  **Use General Knowledge if Context is Insufficient**: If the CONTEXT does *not* contain relevant information, or if it's insufficient to fully answer the USER'S QUESTION, you may use your general dermatological knowledge to provide a helpful answer.
     *   In such cases, clearly state that the information is general advice (e.g., "Generally, for sensitive skin..." or "While our specific knowledge base doesn't cover this, common advice includes...").
     *   If you have no relevant information either from context or general knowledge, then respond with: "I'm sorry, but I don't have enough specific information to answer that question right now. It might be best to consult with a dermatologist for personalized advice."
-4.  **Professional Tone**: Present your answer in a compassionate, professional, and easy-to-understand manner.
-5.  **No Mention of "CONTEXT"**: Do not mention the word "CONTEXT" or "knowledge base" in your answer to the user.
-6.  **Details from Context**: If using context, use specific details from it, such as treatment recommendations, ingredients, or timelines.
-7.  **Multiple Options**: If multiple treatment options are mentioned (either in context or general knowledge), present them clearly.
-8.  **Safety First**: Always err on the side of caution. If the question involves a serious medical concern or requires a diagnosis, advise the user to consult a healthcare professional.
+5.  **Professional Tone**: Present your answer in a compassionate, professional, and easy-to-understand manner.
+6.  **No Mention of "CONTEXT"**: Do not mention the word "CONTEXT" or "knowledge base" in your answer to the user.
+7.  **Details from Context**: If using context, use specific details from it, such as treatment recommendations, ingredients, or timelines.
+8.  **Multiple Options**: If multiple treatment options are mentioned (either in context or general knowledge), present them clearly.
+9.  **Safety First**: Always err on the side of caution. If the question involves a serious medical concern or requires a diagnosis, advise the user to consult a healthcare professional.
 
 ANSWER:"""
 
 DIAGNOSIS_TEMPLATE = """
 You are an expert dermatology assistant for the Acne Sense app.
-Create helpful recommendations based on the PATIENT PROFILE and ACNE INFORMATION provided.
+Create helpful recommendations based on the PATIENT PROFILE, DETECTED ACNE TYPES, and ACNE INFORMATION provided.
 Your response MUST be formatted in proper markdown syntax.
+
+DETECTED ACNE TYPES:
+{detected_acne_types}
 
 RESPONSE FORMAT REQUIREMENTS (STRICTLY FOLLOW):
 - Start with a level 2 heading '## OVERVIEW'
@@ -68,6 +72,10 @@ Brief summary here.
 Warning information here.
 
 YOUR RESPONSE MUST STRICTLY FOLLOW THIS MARKDOWN FORMAT.
+
+**IMPORTANT: Your entire response, including all headings and content, MUST be in the following language: {target_language}.**
+
+**CRITICAL: Base your recommendations ONLY on the DETECTED ACNE TYPES listed above. Do not discuss or mention any acne types not present in the DETECTED ACNE TYPES list.**
 
 PATIENT PROFILE:
 {patient_profile}
@@ -184,7 +192,7 @@ def format_docs_for_context(docs: List[Document]) -> str:
     """Format retrieved documents into context string"""
     return "\n\n".join([doc.page_content for doc in docs])
 
-def answer_question(query: str, model: str = None, num_results: int = 5, thinking_budget: Optional[int] = None) -> str:
+def answer_question(query: str, target_language: str = "en", model: str = None, num_results: int = 5, thinking_budget: Optional[int] = None) -> str:
     """Answer a question using RAG with Langchain"""
     try:
         # Get retriever and LLM
@@ -196,14 +204,14 @@ def answer_question(query: str, model: str = None, num_results: int = 5, thinkin
         
         # Create RAG chain using LCEL
         rag_chain = (
-            {"context": retriever | format_docs_for_context, "question": RunnablePassthrough()}
+            {"context": retriever | format_docs_for_context, "question": RunnablePassthrough(), "target_language": RunnablePassthrough()}
             | prompt
             | llm
             | StrOutputParser()
         )
         
-        # Invoke the chain
-        answer = rag_chain.invoke(query)
+        # Invoke the chain with both query and target_language
+        answer = rag_chain.invoke({"question": query, "target_language": target_language})
         return answer
         
     except Exception as e:
@@ -237,7 +245,7 @@ def evaluate_relevance(question: str, answer: str, model: str = None) -> Dict[st
         current_app.logger.error(f"Error in evaluate_relevance: {str(e)}")
         return {"Relevance": "UNKNOWN", "Explanation": f"Error: {str(e)}"}
 
-def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, str]:
+def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], target_language: str = "en", model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, str]:
     """Process diagnosis results and provide recommendations using RAG"""
     try:
         # Build patient profile
@@ -248,24 +256,43 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
         Sensitivity: {user_info.get('skin_sensitivity', 'Unknown')}
         """.strip()
         
-        # Retrieve relevant acne information
+        # Format detected acne types for the prompt
+        detected_acne_types = "- " + "\n- ".join(acne_types)
+        
+        # Retrieve relevant acne information using server-side filtering
         acne_info_parts = []
         
-        # Get information for each acne type
+        # Get information for each acne type using server-side filtering
         for acne_type in acne_types:
-            retriever = get_retriever(num_results=3)
-            search_results = retriever.invoke(acne_type)
-            
-            # Filter for acne_types source manually after retrieval
-            acne_type_docs = [doc for doc in search_results if doc.metadata.get('source') == 'acne_types']
-            if acne_type_docs:
-                acne_info_parts.extend([doc.page_content for doc in acne_type_docs[:2]])
+            try:
+                # Use server-side filtering to get only acne_types documents
+                retriever = get_retriever(num_results=3, filter_dict={"source": "acne_types"})
+                search_results = retriever.invoke(acne_type)
+                
+                if search_results:
+                    acne_info_parts.extend([doc.page_content for doc in search_results[:2]])
+            except Exception as filter_error:
+                current_app.logger.warning(f"Server-side filtering failed for {acne_type}, falling back to manual filtering: {str(filter_error)}")
+                # Fallback to manual filtering if server-side filtering fails
+                retriever = get_retriever(num_results=3)
+                search_results = retriever.invoke(acne_type)
+                acne_type_docs = [doc for doc in search_results if doc.metadata.get('source') == 'acne_types']
+                if acne_type_docs:
+                    acne_info_parts.extend([doc.page_content for doc in acne_type_docs[:2]])
         
         # If we have multiple acne types, search for combination considerations
         if len(acne_types) > 1:
             combination_query = " ".join(acne_types) + " combination treatment"
-            combo_retriever = get_retriever(num_results=2)
-            combo_results = combo_retriever.invoke(combination_query)
+            try:
+                # Try server-side filtering for combination considerations
+                combo_retriever = get_retriever(num_results=2, filter_dict={"source": "acne_types"})
+                combo_results = combo_retriever.invoke(combination_query)
+            except Exception as combo_filter_error:
+                current_app.logger.warning(f"Server-side filtering failed for combination query, falling back to manual filtering: {str(combo_filter_error)}")
+                # Fallback to manual filtering
+                combo_retriever = get_retriever(num_results=2)
+                combo_results = combo_retriever.invoke(combination_query)
+                combo_results = [doc for doc in combo_results if doc.metadata.get('source') == 'acne_types']
             
             if combo_results:
                 acne_info_parts.append("COMBINATION CONSIDERATIONS:")
@@ -279,10 +306,12 @@ def process_diagnosis(acne_types: List[str], user_info: Dict[str, Any], model: s
         
         diagnosis_chain = prompt | llm | StrOutputParser()
         
-        # Generate response
+        # Generate response with detected acne types
         response = diagnosis_chain.invoke({
             "patient_profile": patient_profile,
-            "acne_info": acne_info
+            "detected_acne_types": detected_acne_types,
+            "acne_info": acne_info,
+            "target_language": target_language
         })
         
         # Parse the response into sections
@@ -344,12 +373,12 @@ def rag(query: str, target_language: str = "en",
         translation_method: str = "google", 
         model: str = None, thinking_budget: Optional[int] = None) -> Dict[str, Any]:
     """
-    Multilingual RAG function to handle queries in any language
+    Streamlined RAG function with integrated multilingual support
     
     Args:
         query: User query in any language
         target_language: Language to return answer in (default: "en")
-        translation_method: Translation method ("google", "llm", "both")
+        translation_method: Translation method (deprecated, kept for compatibility)
         model: LLM model to use (default: from configuration)
         thinking_budget: Thinking budget for the LLM (default: None, uses cached instance with 0)
         
@@ -362,43 +391,19 @@ def rag(query: str, target_language: str = "en",
         
     t0 = time.time()
     
-    # Initialize translation service
+    # Initialize translation service for language detection only
     translation_svc = TranslationService()
     
-    # Step 1: Detect language and translate query to English if needed
+    # Step 1: Detect the original language for metadata
     source_language = translation_svc.detect_language(query)
-    original_query = query
     
-    # Translate query to English for processing if it's not already in English
-    if source_language != "en":
-        query_translation = translation_svc.translate(
-            text=query,
-            target_language="en",
-            source_language=source_language,
-            method=translation_method,
-            model=model
-        )
-        query = query_translation["translated_text"]
+    # Step 2: Process the query directly with RAG, letting the LLM handle the language
+    final_answer = answer_question(query, target_language=target_language, model=model, thinking_budget=thinking_budget)
     
-    # Step 2: Process the query with English RAG
-    answer_in_english = answer_question(query, model=model, thinking_budget=thinking_budget)
-    
-    # Step 3: Translate answer back to target language if needed
-    final_answer = answer_in_english
-    if target_language != "en":
-        answer_translation = translation_svc.translate(
-            text=answer_in_english,
-            target_language=target_language,
-            source_language="en",
-            method=translation_method,
-            model=model
-        )
-        final_answer = answer_translation["translated_text"]
-    
-    # Step 4: Evaluate relevance on English content
+    # Step 3: Evaluate relevance (using the original query)
     relevance_result = evaluate_relevance(
-        question=query if source_language == "en" else original_query,
-        answer=answer_in_english,
+        question=query,
+        answer=final_answer,
         model=model
     )
     
@@ -413,7 +418,7 @@ def rag(query: str, target_language: str = "en",
         "response_time": took,
         "original_language": source_language,
         "target_language": target_language,
-        "translation_method": translation_method,
+        "translation_method": "integrated_llm",  # Updated to reflect new approach
         "relevance": relevance_result.get("Relevance", "UNKNOWN"),
         "relevance_explanation": relevance_result.get("Explanation", "Failed to parse evaluation")
     }

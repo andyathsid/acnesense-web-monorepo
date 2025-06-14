@@ -102,47 +102,27 @@ def diagnosis():
         model = data.get("model", current_app.config['DEFAULT_MODEL'])
         # New parameters for multilingual support
         target_language = data.get("target_language", "en")
-        translation_method = data.get("translation_method", "google")
+        # translation_method is deprecated but kept for compatibility
+        translation_method = data.get("translation_method", "integrated_llm")
         
         if not acne_types:
             return jsonify({"error": "No acne types provided"}), 400
         
-        # Generate recommendations in English (now returns structured sections)
-        recommendation_sections = process_diagnosis(acne_types, user_info, model=model)
+        # Generate recommendations directly in target language
+        recommendation_sections = process_diagnosis(
+            acne_types, 
+            user_info, 
+            target_language=target_language,
+            model=model
+        )
         
-        # Initialize response with English content
+        # Build response
         result = {
             "recommendation_sections": recommendation_sections,
             "format": "structured",
-            "original_language": "en",
-            "target_language": "en"
+            "target_language": target_language,
+            "translation_method": "integrated_llm"
         }
-        
-        # Translate each section if needed
-        if target_language != "en":
-            translation_svc = TranslationService()
-            translated_sections = {}
-            
-            for section_name, section_content in recommendation_sections.items():
-                if section_content:  # Only translate non-empty sections
-                    translation_result = translation_svc.translate(
-                        text=section_content,
-                        target_language=target_language,
-                        source_language="en",
-                        method=translation_method,
-                        model=model
-                    )
-                    translated_sections[section_name] = translation_result["translated_text"]
-                else:
-                    translated_sections[section_name] = section_content
-            
-            result["recommendation_sections"] = translated_sections
-            result["original_language"] = "en"
-            result["target_language"] = target_language
-            result["translation_method"] = translation_method
-            
-            # Include original English sections for debugging
-            result["recommendation_sections_english"] = recommendation_sections
         
         return jsonify(result)
     
@@ -324,36 +304,20 @@ def combined_diagnosis():
                 restructured_results["message"] = "No acne detected to generate recommendations"
                 return jsonify(restructured_results)
             
-            # Generate recommendations based on detected acne types in English with thinking_budget=0
-            recommendation_sections = process_diagnosis(acne_types, user_info, model=model, thinking_budget=0)
+            # Generate recommendations directly in target language with thinking_budget=0
+            recommendation_sections = process_diagnosis(
+                acne_types, 
+                user_info, 
+                target_language=target_language,
+                model=model, 
+                thinking_budget=0
+            )
             
             # Initialize translation info
-            translation_info = {"original_language": "en", "target_language": "en"}
-            
-            # Translate each section if needed
-            if target_language != "en":
-                translation_svc = TranslationService()
-                translated_sections = {}
-                
-                for section_name, section_content in recommendation_sections.items():
-                    if section_content:  # Only translate non-empty sections
-                        translation_result = translation_svc.translate(
-                            text=section_content,
-                            target_language=target_language,
-                            source_language="en",
-                            method=translation_method,
-                            model=model
-                        )
-                        translated_sections[section_name] = translation_result["translated_text"]
-                    else:
-                        translated_sections[section_name] = section_content
-                
-                recommendation_sections = translated_sections
-                translation_info = {
-                    "original_language": "en",
-                    "target_language": target_language,
-                    "translation_method": translation_method
-                }
+            translation_info = {
+                "target_language": target_language,
+                "translation_method": "integrated_llm"
+            }
             
             # Restructure the response (move metadata fields up)
             metadata = image_results.pop("metadata", {})

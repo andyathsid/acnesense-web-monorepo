@@ -192,8 +192,7 @@
           },
           body: JSON.stringify({ 
             question: message,
-            target_language: "id",
-            translation_method: "google" 
+            target_language: "id"
           })
         });
         const data = await response.json();
@@ -231,8 +230,7 @@
           },
           body: JSON.stringify({ 
             question: message,
-            target_language: "id",
-            translation_method: "llm" 
+            target_language: "id"
           })
         });
         const data = await response.json();
