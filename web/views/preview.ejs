@@ -273,7 +273,7 @@ async function startCheck() {
     let elapsedTime = 0;
     const loadingSwal = Swal.fire({
         title: 'Sedang memeriksa...',
-        html: `Mohon tunggu, sistem sedang menganalisis gambar Anda...<br><div id="timer-display" class="text-sm text-gray-600 mt-2">Waktu berlalu: <span id="elapsed-seconds">0</span> detik</div>`,
+        html: `Mohon tunggu, sistem sedang menganalisis gambar Anda...`,
         allowOutsideClick: false,
         showConfirmButton: false,
         didOpen: () => {
@@ -285,17 +285,6 @@ async function startCheck() {
                 const timerElement = document.getElementById('elapsed-seconds');
                 if (timerElement) {
                     timerElement.textContent = elapsedTime;
-                    
-                    // Change message after 30 seconds
-                    if (elapsedTime === 30) {
-                        const htmlContent = `Mohon tunggu, sistem sedang menganalisis gambar Anda...<br><div id="timer-display" class="text-sm text-yellow-600 mt-2">Waktu berlalu: <span id="elapsed-seconds">${elapsedTime}</span> detik<br><small>Proses memakan waktu lebih lama dari biasanya...</small></div>`;
-                        Swal.update({ html: htmlContent });
-                    }
-                    // Update message after 60 seconds
-                    else if (elapsedTime === 60) {
-                        const htmlContent = `Mohon tunggu, sistem sedang menganalisis gambar Anda...<br><div id="timer-display" class="text-sm text-orange-600 mt-2">Waktu berlalu: <span id="elapsed-seconds">${elapsedTime}</span> detik<br><small>Tetap menunggu, proses hampir selesai...</small></div>`;
-                        Swal.update({ html: htmlContent });
-                    }
                 }
             }, 1000);
             
