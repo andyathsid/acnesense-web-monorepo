@@ -270,6 +270,7 @@ async function startCheck() {
     }
 
     // Show loading with 30-second timer but prevent auto-close
+    let isApiComplete = false;
     const loadingSwal = Swal.fire({
         title: 'Sedang memeriksa...',
         html: 'Mohon tunggu, sistem sedang menganalisis gambar Anda...',
@@ -279,23 +280,19 @@ async function startCheck() {
         showConfirmButton: false,
         didOpen: () => {
             Swal.showLoading();
-        },
-        willClose: () => {
-            // Prevent auto-close after timer expires - keep dialog open
-            const result = Swal.getResult();
-            if (result.dismiss === Swal.DismissReason.timer) {
-                // Timer expired, but we want to keep it open
-                Swal.fire({
-                    title: 'Sedang memeriksa...',
-                    html: 'Mohon tunggu, sistem sedang menganalisis gambar Anda...',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                return false; // Prevent original dialog from closing
-            }
+        }
+    }).then((result) => {
+        // If timer expired but API not complete, show extended loading
+        if (result.dismiss === Swal.DismissReason.timer && !isApiComplete) {
+            Swal.fire({
+                title: 'Sedang memeriksa...',
+                html: 'Mohon tunggu, sistem sedang menganalisis gambar Anda...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
         }
     });
 
@@ -326,6 +323,7 @@ async function startCheck() {
         }
 
         const data = await response.json();
+        isApiComplete = true;
         Swal.close();
 
         console.log('Diagnosis response:', data);
@@ -378,6 +376,7 @@ async function startCheck() {
 
     } catch (error) {
         console.error('Error during diagnosis:', error);
+        isApiComplete = true;
         Swal.close();
         
         let errorMessage = 'Gagal melakukan pemeriksaan. ';
