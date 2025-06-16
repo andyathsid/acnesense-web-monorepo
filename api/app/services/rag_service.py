@@ -2,6 +2,7 @@ import json
 import time
 import re
 from typing import Dict, List, Any, Optional
+from operator import itemgetter
 from flask import current_app
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
@@ -202,9 +203,13 @@ def answer_question(query: str, target_language: str = "en", model: str = None, 
         # Create prompt template
         prompt = ChatPromptTemplate.from_template(QA_TEMPLATE)
         
-        # Create RAG chain using LCEL
+        # Create RAG chain using LCEL with proper input routing
         rag_chain = (
-            {"context": retriever | format_docs_for_context, "question": RunnablePassthrough(), "target_language": RunnablePassthrough()}
+            {
+                "context": itemgetter("question") | retriever | format_docs_for_context,
+                "question": itemgetter("question"),
+                "target_language": itemgetter("target_language")
+            }
             | prompt
             | llm
             | StrOutputParser()
