@@ -1,7 +1,7 @@
 # AcneSense Monorepo
 
 <div align="center">
-  <img src="web/public/assets/logo.png" alt="AcneSense Logo" width="200"/>
+  <img width="1102" height="412" alt="Group 52" src="https://github.com/user-attachments/assets/374c6f47-d6e6-47d5-bc59-a35501501c16" width="200"/>
   <h2>AI-Powered Acne Detection, Analysis & Knowledge Platform</h2>
   <p><em>Machine Learning · Flask API (Models & RAG) · Express.js Fullstack · Supabase · Vertex AI · Docker · Cloud Run · PWA</em></p>
 </div>
