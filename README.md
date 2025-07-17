@@ -1,81 +1,206 @@
+# AcneSense Monorepo
 
-# Acnesense - Aplikasi Web Progresif
+<div align="center">
+  <img src="web/public/assets/logo.png" alt="AcneSense Logo" width="200"/>
+  <h2>AI-Powered Acne Detection, Analysis & Knowledge Platform</h2>
+  <p><em>Machine Learning · Flask API (Models & RAG) · Express.js Fullstack · Supabase · Vertex AI · Docker · Cloud Run · PWA</em></p>
+</div>
 
-Acnesense adalah aplikasi web progresif yang dirancang untuk membantu pengguna dalam mendeteksi dan merawat masalah kulit, khususnya jerawat. Berikut adalah langkah-langkah penggunaan aplikasi ini.
+---
 
-## Langkah-Langkah Penggunaan
+## 🌟 Overview
 
-### 1. Menu Utama
-Setelah mengakses aplikasi, pengguna akan disajikan dengan menu utama.  
-![Menu Utama](https://github.com/user-attachments/assets/dfb15612-a741-4600-b324-6ad4b7429888)
+AcneSense is an integrated platform for AI-powered acne detection, analysis, and skincare guidance.  
+- The Express.js app (`web/`) is a fullstack application serving both frontend (UI, views) and backend (authentication, routing, API endpoints, business logic).
+- The Flask API (`api/`) is a dedicated service for machine learning model inference and RAG-powered Q&A (retrieval-augmented generation, e.g. LLM Q&A), consumed by the web app.
 
-### 2. Menu Registrasi
-Isi kolom yang disediakan untuk melakukan registrasi sebagai pengguna baru.  
-![Menu Registrasi](https://github.com/user-attachments/assets/139c61a5-f8b4-44af-9fec-e705460d2795)
+---
 
-### 3. Menu Login
-Masukkan kredensial Anda (email dan password) untuk melakukan login.  
-![Menu Login](https://github.com/user-attachments/assets/39c159e4-2b00-41e5-a4d7-68d7c6fdc1c9)
+## 📁 Repository Structure
 
-### 4. Isi Biodata
-Isi informasi mengenai jenis kulit dan skintone untuk melengkapi profil Anda.  
-![Isi Biodata](https://github.com/user-attachments/assets/42b868eb-e7ff-43ca-9da0-93fb45e8ee6b)
+```
+.
+├── ml/      # Machine learning research & notebooks
+├── api/     # Flask API service for models and RAG
+├── web/     # Fullstack Express.js app (frontend & backend)
+```
 
-### 5. Pilih Menu
-Pilih salah satu menu yang ingin digunakan dalam aplikasi.  
-![Pilih Menu](https://github.com/user-attachments/assets/ec128397-bd3f-4ac6-aaba-4d1a34ed6903)
+---
 
-### 6. Menu Deteksi
-Anda dapat mengupload gambar atau menggunakan kamera untuk mengambil gambar langsung.  
-![WhatsApp Image 2025-06-13 at 3 53 20 PM](https://github.com/user-attachments/assets/6d4038e3-bcbb-4500-9f9e-13d4b7f19729)
+## 🚀 Features
 
-### 7. Menu Preview
-Di sini, Anda bisa memilih untuk upload gambar lagi, mengambil gambar ulang, atau langsung melakukan deteksi.  
-![WhatsApp Image 2025-06-13 at 3 47 08 PM](https://github.com/user-attachments/assets/b9337717-9c62-409f-9c9d-5bd795c65f90)
+- 🧠 ML model training, evaluation, and experimentation
+- 🔎 AI-powered acne diagnosis (image + user info)
+- 📊 RAG-based Q&A endpoint (Gemini/Vertex AI)
+- 📷 Real-time acne detection (camera/image upload)
+- 📊 Detection history & analytics
+- 🤖 AI chatbot for skincare
+- 📱 PWA: offline support, installable
+- 💾 Supabase cloud database
+- 🐳 Docker & Cloud Run ready
 
+---
 
-### 8. Menu Hasil
-Di sini, Anda dapat melihat hasil deteksi dan klasifikasi jerawat dari foto yang telah pengguna upload dan deteksi
+## 💻 Technology Stack
 
-![WhatsApp Image 2025-06-13 at 3 48 57 PM](https://github.com/user-attachments/assets/8542afa8-fbb0-451f-95da-bbe5c6d1aa07)
+- **ML**: Python (Jupyter Notebooks), TensorFlow/Keras, scikit-learn, pandas, numpy, matplotlib
+- **API**: Python 3.11, Flask, TFLite, Vertex AI, Qdrant, Supabase, Docker, Cloud Run
+- **Web**: Node.js, Express.js, EJS, Tailwind CSS, Vite, Supabase, Docker, PWA
 
+---
 
-### 9. Menu Riwayat
-Pengguna dapat melihat dan membaca ulang riwayat hasil deteksi sebelumnya.  
+## ⚡ Quick Start
 
-![WhatsApp Image 2025-06-13 at 3 49 35 PM](https://github.com/user-attachments/assets/5bf7e723-fdfb-41d8-84b3-78be14432515)
+### Clone the Repo
 
+```bash
+git clone https://github.com/andyathsid/acne-sense-monorepo.git
+```
 
-### 10. Menu Chatbot
-Manfaatkan fitur AI Assistant untuk bertanya mengenai jerawat dan penanganannya.  
+---
 
-![WhatsApp Image 2025-06-13 at 3 47 50 PM](https://github.com/user-attachments/assets/c75108f1-d761-475c-a4b1-b4e71868b0f5)
+### ML Development (`ml/`)
 
+#### Prerequisites
 
-### 11. Menu Profile
-Lihat informasi singkat mengenai biodata pengguna.  
+- Python 3.8+
+- Jupyter Notebook or JupyterLab
 
-![WhatsApp Image 2025-06-13 at 3 50 37 PM](https://github.com/user-attachments/assets/2cf205f6-f265-453c-8094-ef9354cd7767)
+#### Setup
 
+```bash
+cd ml
+python -m venv venv
+source venv/bin/activate
+pip install jupyter pandas numpy scikit-learn tensorflow matplotlib
+jupyter notebook
+```
 
-### 12. Menu Edit Profile
-Pengguna dapat mengubah dan memperbarui informasi biodata mereka.  
+#### Usage
 
-![WhatsApp Image 2025-06-13 at 3 51 18 PM](https://github.com/user-attachments/assets/7ffd34d6-c345-4e26-8db1-066a8a517391)
+- Open notebooks in `ml/notebooks/` with Jupyter.
+- Run cells to train, evaluate, and experiment with models.
+- Export trained models for use in the API or web modules.
 
+---
 
-### 12. Menu Lupa Password
-Jikalau pengguna tidak bisa masuk akun dikarenakan lupa password Pengguna dapat merubah password akun dengan menggunakan menu lupa password. Masukkan Email terdaftar pada web Acnesense. Masukkan OTP yang diberikan melalui email terdaftar. Masukkan password baru dan konfirmasi
+### API (`api/`)
 
-![Menu Lupa Password](https://github.com/user-attachments/assets/4f667f5a-d464-401c-940f-96b53b635783)
-![Menu Lupa Password](https://github.com/user-attachments/assets/3daf9a30-ea75-41cc-b456-72813d416841)
-![Menu Lupa Password](https://github.com/user-attachments/assets/bd53fd42-9824-4c55-92db-20b5fd2a493d)
+#### Prerequisites
 
+- Python 3.11+
+- pip
+- Docker (optional)
+- Supabase account/project
+- Google Cloud service account (for Vertex AI/Gemini)
 
+#### Setup
 
+```bash
+cd api
+pip install -r requirements.dev.txt
+cp .env.example .env
+cp .flaskenv.example .flaskenv
+# Edit .env and .flaskenv with your credentials
+flask run
+# Or use Gunicorn for production
+gunicorn --bind 0.0.0.0:8000 'app:create_app()'
+```
 
-## Kesimpulan
+#### Docker
 
+```bash
+docker build -t acne-sense-api -f Dockerfile.dev .
+docker run -p 8000:8000 --env-file .env acne-sense-api
+```
 
-Terima kasih telah menggunakan Acnesense!
+#### Docker Compose
 
+```bash
+docker-compose -f docker-compose.dev.yaml up --build
+```
+
+#### Main Endpoints
+
+| Route                | Method | Description                       |
+|----------------------|--------|-----------------------------------|
+| `/health`            | GET    | Health check                      |
+| `/image-diagnosis`   | POST   | Diagnose acne from image          |
+| `/combined-diagnosis`| POST   | Diagnose acne (image + user info) |
+| `/question`          | POST   | Ask acne-related question (RAG)   |
+| `/feedback`          | POST   | Submit feedback for answer        |
+| `/diagnosis`         | POST   | Get treatment recommendations     |
+
+---
+
+### Web Fullstack App (`web/`)
+
+#### Prerequisites
+
+- Node.js (v14+)
+- npm
+- Supabase account/project
+- AI detection service (port 5000)
+
+#### Setup
+
+```bash
+cd web
+npm install
+cp .env.example .env
+# Edit .env with your Supabase credentials
+npm run dev
+# For production
+npm run build
+npm start
+```
+
+#### Docker
+
+```bash
+docker build -t acne-sense-web .
+docker run -p 3000:3000 acne-sense-web
+```
+
+#### Main Endpoints
+
+| Route             | Method | Description                  |
+|-------------------|--------|------------------------------|
+| `/register`       | POST   | User registration            |
+| `/login`          | POST   | User login                   |
+| `/logout`         | POST   | User logout                  |
+| `/dashboard`      | GET    | User dashboard               |
+| `/deteksi`        | GET    | Detection page               |
+| `/preview`        | GET    | Image preview                |
+| `/chatbot`        | GET    | AI chatbot                   |
+| `/riwayat`        | GET    | Detection history            |
+| `/hasil/:id`      | GET    | Detection results            |
+| `/save-detection` | POST   | Save detection results       |
+| `/api/session-status` | GET | Check login status           |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create a feature branch
+3. Make changes 
+4. Test thoroughly
+5. Submit a pull request
+
+---
+
+## 📄 **License**
+
+This project is licensed under the **MIT License** - see the [LICENSE](https://choosealicense.com/licenses/mit/) here
+
+```
+MIT License - Open Source Freedom
+├── ✅ Commercial use
+├── ✅ Modification
+├── ✅ Distribution
+├── ✅ Private use
+└── ❌ Liability & Warranty
+```
+
+---
